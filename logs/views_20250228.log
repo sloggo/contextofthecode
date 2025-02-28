@@ -1,0 +1,141 @@
+2025-02-28 20:26:12,386 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:26:17,295 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:26:17,566 - views - INFO - Retrieved devices: []
+2025-02-28 20:26:17,566 - views - INFO - Getting metrics for device: 
+2025-02-28 20:26:17,591 - views - INFO - Retrieved metrics: []
+2025-02-28 20:26:20,005 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:26:20,090 - views - INFO - Getting metrics for device: 
+2025-02-28 20:26:20,106 - views - INFO - Retrieved devices: []
+2025-02-28 20:26:20,106 - views - INFO - Retrieved metrics: []
+2025-02-28 20:26:32,104 - views - INFO - Database status - Devices: 1, Metrics: 2, Values: 2
+2025-02-28 20:26:32,274 - views - INFO - Getting metrics for device: 
+2025-02-28 20:26:32,282 - views - INFO - Retrieved devices: ['Device 1']
+2025-02-28 20:26:32,290 - views - INFO - Retrieved metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:26:32,327 - views - INFO - Database status - Devices: 1, Metrics: 2, Values: 2
+2025-02-28 20:26:32,467 - views - INFO - Getting metrics for device: 
+2025-02-28 20:26:32,467 - views - INFO - Retrieved devices: ['Device 1']
+2025-02-28 20:26:32,467 - views - INFO - Retrieved metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:26:35,312 - views - INFO - Getting metrics for device: Device 1
+2025-02-28 20:26:35,318 - views - INFO - Retrieved metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:26:35,318 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:26:37,021 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:27:39,083 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:27:43,560 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:27:46,743 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:28:09,121 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:28:09,494 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:28:10,912 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:28:55,098 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:28:55,106 - views - INFO - Initial load - Devices: [], Metrics: []
+2025-02-28 20:28:55,221 - views - INFO - Retrieved devices: []
+2025-02-28 20:28:55,240 - views - INFO - Getting metrics for device: 
+2025-02-28 20:28:55,240 - views - INFO - Retrieved metrics: []
+2025-02-28 20:28:56,189 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:28:56,202 - views - INFO - Initial load - Devices: [], Metrics: []
+2025-02-28 20:28:56,291 - views - INFO - Retrieved devices: []
+2025-02-28 20:28:56,306 - views - INFO - Getting metrics for device: 
+2025-02-28 20:28:56,306 - views - INFO - Retrieved metrics: []
+2025-02-28 20:28:58,653 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:28:58,653 - views - INFO - Initial load - Devices: [], Metrics: []
+2025-02-28 20:29:17,494 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:29:17,511 - views - INFO - Initial load - Devices: [], Metrics: []
+2025-02-28 20:29:19,666 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:29:19,671 - views - INFO - Initial load - Devices: [], Metrics: []
+2025-02-28 20:29:33,552 - views - INFO - Database status - Devices: 1, Metrics: 2, Values: 2
+2025-02-28 20:29:33,569 - views - INFO - Initial load - Devices: ['Device 1'], Metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:29:35,408 - views - INFO - Database status - Devices: 1, Metrics: 2, Values: 2
+2025-02-28 20:29:35,417 - views - INFO - Initial load - Devices: ['Device 1'], Metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:29:55,500 - views - INFO - Getting metrics for device: Device 1
+2025-02-28 20:29:55,508 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:29:55,516 - views - INFO - Retrieved metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:29:55,529 - views - INFO - Initial load - Devices: ['Device 1', 'Device 2'], Metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:29:57,280 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:29:57,291 - views - INFO - Initial load - Devices: ['Device 1', 'Device 2'], Metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:30:42,659 - views - INFO - Database status - Devices: 0, Metrics: 0, Values: 0
+2025-02-28 20:30:42,659 - views - INFO - Available devices: []
+2025-02-28 20:30:42,667 - views - INFO - Available metrics: []
+2025-02-28 20:30:42,675 - views - INFO - Number of devices with metrics: 0
+2025-02-28 20:30:42,675 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:31:54,486 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:31:54,486 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:31:54,486 - views - INFO - Available metrics: ['cpu_usage', 'humidity', 'memory_usage', 'temperature']
+2025-02-28 20:31:54,495 - views - INFO - Number of devices with metrics: 2
+2025-02-28 20:31:54,495 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:31:54,495 - views - INFO - Device Device 2 has 2 metrics
+2025-02-28 20:31:54,499 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:31:56,721 - views - INFO - Getting metrics for device: Device 1
+2025-02-28 20:31:56,729 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:31:56,730 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:31:56,730 - views - INFO - Retrieved metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:31:56,738 - views - INFO - Available metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:31:56,748 - views - INFO - Number of devices with metrics: 1
+2025-02-28 20:31:56,748 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:31:56,748 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:31:58,784 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:31:58,784 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:31:58,784 - views - INFO - Available metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:31:58,793 - views - INFO - Number of devices with metrics: 1
+2025-02-28 20:31:58,793 - views - INFO - Device Device 1 has 1 metrics
+2025-02-28 20:31:58,793 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:32:03,591 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 4
+2025-02-28 20:32:03,601 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:32:03,601 - views - INFO - Available metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:32:03,611 - views - INFO - Number of devices with metrics: 1
+2025-02-28 20:32:03,611 - views - INFO - Device Device 1 has 1 metrics
+2025-02-28 20:32:03,613 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:33:01,570 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:33:01,570 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:33:01,570 - views - INFO - Available metrics: ['cpu_usage', 'humidity', 'memory_usage', 'temperature']
+2025-02-28 20:33:01,586 - views - INFO - Number of devices with metrics: 2
+2025-02-28 20:33:01,586 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:33:01,586 - views - INFO - Device Device 2 has 2 metrics
+2025-02-28 20:33:01,586 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:33:31,540 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:33:31,548 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:33:31,548 - views - INFO - Available metrics: ['cpu_usage', 'humidity', 'memory_usage', 'temperature']
+2025-02-28 20:33:31,548 - views - INFO - Number of devices with metrics: 2
+2025-02-28 20:33:31,548 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:33:31,556 - views - INFO - Device Device 2 has 2 metrics
+2025-02-28 20:33:31,556 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:33:35,353 - views - INFO - Getting metrics for device: Device 1
+2025-02-28 20:33:35,354 - views - INFO - Retrieved metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:33:35,360 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 8
+2025-02-28 20:33:35,475 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:33:35,480 - views - INFO - Available metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:33:35,536 - views - INFO - Number of devices with metrics: 1
+2025-02-28 20:33:35,536 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:33:35,536 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:33:37,774 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 10
+2025-02-28 20:33:37,774 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:33:37,774 - views - INFO - Available metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:33:37,793 - views - INFO - Number of devices with metrics: 1
+2025-02-28 20:33:37,793 - views - INFO - Device Device 1 has 1 metrics
+2025-02-28 20:33:37,793 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:34:10,844 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 12
+2025-02-28 20:34:10,845 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:34:10,847 - views - INFO - Available metrics: ['cpu_usage', 'humidity', 'memory_usage', 'temperature']
+2025-02-28 20:34:10,848 - views - INFO - Number of devices with metrics: 2
+2025-02-28 20:34:10,848 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:34:10,848 - views - INFO - Device Device 2 has 2 metrics
+2025-02-28 20:34:10,848 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:35:00,263 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 16
+2025-02-28 20:35:00,263 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:35:00,263 - views - INFO - Available metrics: ['cpu_usage', 'humidity', 'memory_usage', 'temperature']
+2025-02-28 20:35:00,272 - views - INFO - Number of devices with metrics: 2
+2025-02-28 20:35:00,272 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:35:00,272 - views - INFO - Device Device 2 has 2 metrics
+2025-02-28 20:35:00,280 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:35:07,061 - views - INFO - Getting metrics for device: Device 1
+2025-02-28 20:35:07,061 - views - INFO - Retrieved metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:35:07,104 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 16
+2025-02-28 20:35:07,112 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:35:07,112 - views - INFO - Available metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:35:07,120 - views - INFO - Number of devices with metrics: 1
+2025-02-28 20:35:07,120 - views - INFO - Device Device 1 has 2 metrics
+2025-02-28 20:35:07,120 - views - INFO - Rendering dashboard template with data
+2025-02-28 20:35:12,859 - views - INFO - Database status - Devices: 2, Metrics: 4, Values: 16
+2025-02-28 20:35:12,862 - views - INFO - Available devices: ['Device 1', 'Device 2']
+2025-02-28 20:35:12,864 - views - INFO - Available metrics: ['cpu_usage', 'memory_usage']
+2025-02-28 20:35:12,871 - views - INFO - Number of devices with metrics: 1
+2025-02-28 20:35:12,872 - views - INFO - Device Device 1 has 1 metrics
+2025-02-28 20:35:12,872 - views - INFO - Rendering dashboard template with data

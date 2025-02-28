@@ -1,0 +1,483 @@
+2025-02-28 20:06:04,591 - uploader - INFO - Initialized uploader queue with batch size: 100, max size: 1000
+2025-02-28 20:06:05,598 - uploader - INFO - Starting uploader with interval: 5 seconds
+2025-02-28 20:06:05,644 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:06:10,696 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:07:06,734 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:07:11,780 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:08:07,287 - uploader - INFO - Initialized uploader queue with batch size: 100, max size: 1000
+2025-02-28 20:08:08,307 - uploader - INFO - Starting uploader with interval: 5 seconds
+2025-02-28 20:08:10,341 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:08:17,473 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:08:24,550 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:08:31,623 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:08:38,671 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:08:45,722 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:08:52,769 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:08:59,805 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:09:06,862 - uploader - ERROR - Error uploading metrics: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 992, in _wrap_create_connection
+    return await self._loop.create_connection(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1122, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1104, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\base_events.py", line 1007, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python312\Lib\asyncio\proactor_events.py", line 729, in sock_connect
+    return await self._proactor.connect(sock, address)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 803, in _poll
+    value = callback(transferred, key, ov)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\asyncio\windows_events.py", line 599, in finish_connect
+    ov.getresult()
+ConnectionRefusedError: [WinError 1225] The remote computer refused the network connection
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\isestudent.ISESTUDENT1.000\Documents\cotc\contextofthecode\src\collector\uploader_queue.py", line 69, in upload_batch
+    async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 1194, in __aenter__
+    self._resp = await self._coro
+                 ^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\client.py", line 578, in _request
+    conn = await self._connector.connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 544, in connect
+    proto = await self._create_connection(req, traces, timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 911, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1235, in _create_direct_connection
+    raise last_exc
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1204, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\isestudent.ISESTUDENT1.000\AppData\Roaming\Python\Python312\site-packages\aiohttp\connector.py", line 1000, in _wrap_create_connection
+    raise client_error(req.connection_key, exc) from exc
+aiohttp.client_exceptions.ClientConnectorError: Cannot connect to host 127.0.0.1:8000 ssl:default [The remote computer refused the network connection]
+2025-02-28 20:09:12,609 - uploader - INFO - Successfully uploaded 8 metrics
+2025-02-28 20:10:12,735 - uploader - INFO - Successfully uploaded 4 metrics
+2025-02-28 20:11:12,906 - uploader - INFO - Successfully uploaded 4 metrics
+2025-02-28 20:12:13,312 - uploader - INFO - Successfully uploaded 4 metrics
+2025-02-28 20:13:13,981 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:13:19,134 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:14:15,165 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:14:20,241 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:15:16,290 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:15:21,328 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:16:17,422 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:16:22,491 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:17:18,574 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:17:23,613 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:18:19,678 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:18:24,725 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:19:20,824 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:19:25,871 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:20:22,013 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:20:27,082 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:21:23,069 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:21:28,119 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:22:24,167 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:22:29,217 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:23:25,308 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:23:30,351 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:24:26,408 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:24:31,441 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:25:27,549 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:25:32,600 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:26:28,664 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:26:33,712 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:27:29,811 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:27:34,840 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:28:30,909 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:28:35,953 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:29:32,341 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:29:37,398 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:30:33,137 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:30:38,184 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:31:34,247 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:31:39,293 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:32:35,353 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:32:40,388 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:33:36,576 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:33:41,604 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:34:37,695 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:34:42,712 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:35:38,812 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:35:43,824 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:36:39,966 - uploader - INFO - Successfully uploaded 2 metrics
+2025-02-28 20:36:44,982 - uploader - INFO - Successfully uploaded 2 metrics

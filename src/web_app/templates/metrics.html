@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Metrics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
+    <style>
+        .metric-card {
+            margin-bottom: 20px;
+        }
+        .refresh-btn {
+            margin-bottom: 20px;
+        }
+        .graph-container {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .last-update {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 10px;
+        }
+        .selector-container {
+            margin-bottom: 20px;
+        }
+        .pagination {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Device Metrics Dashboard</h1>
+        
+        <div class="selector-container row">
+            <div class="col-md-4">
+                <label for="deviceSelect" class="form-label">Device:</label>
+                <select class="form-select" id="deviceSelect">
+                    <option value="">All Devices</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="metricSelect" class="form-label">Metric:</label>
+                <select class="form-select" id="metricSelect">
+                    <option value="">All Metrics</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="autoUpdateToggle" checked>
+                <label class="form-check-label" for="autoUpdateToggle">Auto Update</label>
+            </div>
+            <button class="btn btn-primary refresh-btn" onclick="refreshData()">
+                Refresh Data
+            </button>
+        </div>
+        
+        <p class="last-update">Last update: <span id="lastUpdateTime">Never</span></p>
+
+        <div id="metricsContainer">
+            {% for device_name, device_metrics in metrics.items() %}
+            <div class="card metric-card">
+                <div class="card-header">
+                    <h2>{{ device_name }}</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for metric_name, metric_data in device_metrics.items() %}
+                        <div class="col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{{ metric_name }}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <p><strong>Current Value:</strong> <span class="current-value">{{ "%.2f"|format(metric_data.current_value) }}</span></p>
+                                            <p><strong>Average:</strong> <span class="avg-value">{{ "%.2f"|format(metric_data.avg_value) }}</span></p>
+                                            <p><strong>Min:</strong> <span class="min-value">{{ "%.2f"|format(metric_data.min_value) }}</span></p>
+                                            <p><strong>Max:</strong> <span class="max-value">{{ "%.2f"|format(metric_data.max_value) }}</span></p>
+                                            <p><strong>Last Updated:</strong> <span class="last-updated">{{ metric_data.last_updated }}</span></p>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div id="graph-{{ device_name|replace(' ', '_') }}-{{ metric_name|replace(' ', '_') }}" class="graph-container"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3>Metric History</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Device</th>
+                                <th>Metric</th>
+                                <th>Value</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metricsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <nav aria-label="Metrics pagination">
+                    <ul class="pagination justify-content-center" id="metricsPagination">
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initial data
+        const initialData = {
+            metrics: {{ metrics|tojson|safe }},
+            devices: {{ initial_devices|tojson|safe }},
+            metrics_list: {{ initial_metrics|tojson|safe }}
+        };
+        console.log('Initial data loaded:', initialData);
+
+        let metricsData = initialData.metrics;
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Populate dropdowns with initial data
+        function populateDropdowns() {
+            console.log('Populating dropdowns with initial data');
+            
+            // Populate devices dropdown
+            const deviceSelect = document.getElementById('deviceSelect');
+            deviceSelect.innerHTML = '<option value="">All Devices</option>';
+            initialData.devices.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device;
+                option.textContent = device;
+                deviceSelect.appendChild(option);
+            });
+            console.log('Devices populated:', initialData.devices);
+
+            // Populate metrics dropdown
+            const metricSelect = document.getElementById('metricSelect');
+            metricSelect.innerHTML = '<option value="">All Metrics</option>';
+            initialData.metrics_list.forEach(metric => {
+                const option = document.createElement('option');
+                option.value = metric;
+                option.textContent = metric;
+                metricSelect.appendChild(option);
+            });
+            console.log('Metrics populated:', initialData.metrics_list);
+        }
+
+        // Create initial graphs
+        function createInitialGraphs() {
+            console.log('Creating initial graphs');
+            if (Object.keys(metricsData).length > 0) {
+                createGraphs(metricsData);
+                console.log('Initial graphs created');
+            } else {
+                console.log('No initial metrics data available');
+            }
+        }
+
+        // Initialize the dashboard
+        async function initializeDashboard() {
+            try {
+                console.log('Initializing dashboard');
+                
+                // First populate dropdowns with initial data
+                populateDropdowns();
+                
+                // Then create initial graphs
+                createInitialGraphs();
+                
+                // Load initial table data
+                await loadMetricsTable(1);
+                
+                // Finally, set up SSE if auto-update is enabled
+                const autoUpdateToggle = document.getElementById('autoUpdateToggle');
+                if (autoUpdateToggle.checked) {
+                    console.log('Setting up SSE connection');
+                    connectSSE();
+                }
+                
+                console.log('Dashboard initialization complete');
+            } catch (error) {
+                console.error('Error during dashboard initialization:', error);
+            }
+        }
+
+        // Start initialization when the page is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            initializeDashboard();
+        }
+
+        // Load devices and metrics
+        async function loadDevices() {
+            try {
+                const response = await fetch('/api/devices');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const devices = await response.json();
+                console.log('Loaded devices:', devices);
+                
+                const select = document.getElementById('deviceSelect');
+                select.innerHTML = '<option value="">All Devices</option>';
+                devices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device;
+                    option.textContent = device;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading devices:', error);
+            }
+        }
+
+        async function loadMetrics(deviceName = '') {
+            try {
+                const response = await fetch(`/api/metrics?device=${encodeURIComponent(deviceName)}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const metrics = await response.json();
+                console.log('Loaded metrics:', metrics);
+                
+                const select = document.getElementById('metricSelect');
+                select.innerHTML = '<option value="">All Metrics</option>';
+                metrics.forEach(metric => {
+                    const option = document.createElement('option');
+                    option.value = metric;
+                    option.textContent = metric;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+            }
+        }
+
+        // Load paginated metrics
+        async function loadMetricsTable(page = 1) {
+            const deviceName = document.getElementById('deviceSelect').value;
+            const metricName = document.getElementById('metricSelect').value;
+            const response = await fetch(`/api/metric-values?page=${page}&device=${deviceName}&metric=${metricName}`);
+            const data = await response.json();
+            
+            const tbody = document.getElementById('metricsTableBody');
+            tbody.innerHTML = '';
+            data.data.forEach(metric => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${metric.device_name}</td>
+                    <td>${metric.metric_name}</td>
+                    <td>${metric.value.toFixed(2)}</td>
+                    <td>${metric.timestamp}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update pagination
+            currentPage = data.page;
+            totalPages = data.total_pages;
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('metricsPagination');
+            pagination.innerHTML = '';
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadMetricsTable(${currentPage - 1})">Previous</a>`;
+            pagination.appendChild(prevLi);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="loadMetricsTable(${i})">${i}</a>`;
+                pagination.appendChild(li);
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadMetricsTable(${currentPage + 1})">Next</a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        // Create all graphs initially
+        function createGraphs(metrics) {
+            console.log('Creating graphs with metrics:', metrics);
+            
+            // Clear existing graphs container first
+            const container = document.getElementById('metricsContainer');
+            container.innerHTML = '';
+            
+            // Build all the HTML first
+            for (const [deviceName, deviceMetrics] of Object.entries(metrics)) {
+                // Create device card
+                const deviceCard = document.createElement('div');
+                deviceCard.className = 'card metric-card';
+                deviceCard.innerHTML = `
+                    <div class="card-header">
+                        <h2>${deviceName}</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row"></div>
+                    </div>
+                `;
+                
+                const metricsRow = deviceCard.querySelector('.row');
+                
+                for (const [metricName, metricData] of Object.entries(deviceMetrics)) {
+                    // Create metric card
+                    const metricDiv = document.createElement('div');
+                    metricDiv.className = 'col-12 mb-4';
+                    metricDiv.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>${metricName}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <p><strong>Current Value:</strong> <span class="current-value">${metricData.current_value.toFixed(2)}</span></p>
+                                        <p><strong>Average:</strong> <span class="avg-value">${metricData.avg_value.toFixed(2)}</span></p>
+                                        <p><strong>Min:</strong> <span class="min-value">${metricData.min_value.toFixed(2)}</span></p>
+                                        <p><strong>Max:</strong> <span class="max-value">${metricData.max_value.toFixed(2)}</span></p>
+                                        <p><strong>Last Updated:</strong> <span class="last-updated">${metricData.last_updated}</span></p>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div id="graph-${deviceName.replace(/ /g, '_')}-${metricName.replace(/ /g, '_')}" class="graph-container"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    metricsRow.appendChild(metricDiv);
+                }
+                
+                container.appendChild(deviceCard);
+            }
+
+            // Wait for DOM to update before creating graphs
+            requestAnimationFrame(() => {
+                // Now create all the graphs
+                for (const [deviceName, deviceMetrics] of Object.entries(metrics)) {
+                    for (const [metricName, metricData] of Object.entries(deviceMetrics)) {
+                        try {
+                            const graphId = `graph-${deviceName.replace(/ /g, '_')}-${metricName.replace(/ /g, '_')}`;
+                            const graphElement = document.getElementById(graphId);
+                            
+                            if (!graphElement) {
+                                console.warn(`Graph element ${graphId} not found after creation`);
+                                continue;
+                            }
+                            
+                            const traces = [{
+                                x: metricData.timestamps,
+                                y: metricData.values,
+                                type: 'scatter',
+                                mode: 'lines+markers',
+                                name: metricName
+                            }];
+
+                            Plotly.newPlot(graphId, traces, {
+                                title: `${metricName} Over Time`,
+                                xaxis: {
+                                    title: 'Time',
+                                    tickformat: '%Y-%m-%d %H:%M:%S'
+                                },
+                                yaxis: {
+                                    title: 'Value'
+                                },
+                                margin: {
+                                    l: 50,
+                                    r: 50,
+                                    b: 50,
+                                    t: 50,
+                                    pad: 4
+                                },
+                                autosize: true
+                            }, {
+                                responsive: true,
+                                displayModeBar: false
+                            });
+                        } catch (error) {
+                            console.error(`Error creating graph for ${deviceName} - ${metricName}:`, error);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update graphs with new data
+        function updateGraphs(metrics) {
+            console.log('Updating graphs with metrics:', metrics);
+            
+            // First check if we need to recreate the graphs
+            const container = document.getElementById('metricsContainer');
+            if (!container || container.children.length === 0) {
+                console.log('No graphs found, creating new ones');
+                createGraphs(metrics);
+                return;
+            }
+            
+            // Wait for any pending DOM updates
+            requestAnimationFrame(() => {
+                for (const [deviceName, deviceMetrics] of Object.entries(metrics)) {
+                    for (const [metricName, metricData] of Object.entries(deviceMetrics)) {
+                        try {
+                            const graphId = `graph-${deviceName.replace(/ /g, '_')}-${metricName.replace(/ /g, '_')}`;
+                            const graphDiv = document.getElementById(graphId);
+                            
+                            if (!graphDiv) {
+                                console.warn(`Graph element ${graphId} not found, recreating graphs`);
+                                createGraphs(metrics);
+                                return;
+                            }
+                            
+                            const traces = [{
+                                x: metricData.timestamps,
+                                y: metricData.values,
+                                type: 'scatter',
+                                mode: 'lines+markers',
+                                name: metricName
+                            }];
+                            
+                            Plotly.newPlot(graphId, traces, {
+                                title: `${metricName} Over Time`,
+                                xaxis: {
+                                    title: 'Time',
+                                    tickformat: '%Y-%m-%d %H:%M:%S'
+                                },
+                                yaxis: {
+                                    title: 'Value'
+                                },
+                                margin: {
+                                    l: 50,
+                                    r: 50,
+                                    b: 50,
+                                    t: 50,
+                                    pad: 4
+                                },
+                                autosize: true
+                            }, {
+                                responsive: true,
+                                displayModeBar: false
+                            });
+
+                            // Update summary values
+                            const card = graphDiv.closest('.card');
+                            if (card) {
+                                card.querySelector('.current-value').textContent = metricData.current_value.toFixed(2);
+                                card.querySelector('.avg-value').textContent = metricData.avg_value.toFixed(2);
+                                card.querySelector('.min-value').textContent = metricData.min_value.toFixed(2);
+                                card.querySelector('.max-value').textContent = metricData.max_value.toFixed(2);
+                                card.querySelector('.last-updated').textContent = metricData.last_updated;
+                            }
+                        } catch (error) {
+                            console.error(`Error updating graph for ${deviceName} - ${metricName}:`, error);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Set up SSE connection
+        let eventSource;
+        
+        function connectSSE() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            const deviceName = document.getElementById('deviceSelect').value;
+            const metricName = document.getElementById('metricSelect').value;
+            eventSource = new EventSource(`/metrics/stream?device=${deviceName}&metric=${metricName}`);
+            
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                metricsData = data.metrics;
+                updateGraphs(metricsData);
+                document.getElementById('lastUpdateTime').textContent = new Date().toLocaleTimeString();
+                loadMetricsTable(currentPage);
+            };
+
+            eventSource.onerror = function(error) {
+                console.error('SSE Error:', error);
+                eventSource.close();
+                setTimeout(connectSSE, 5000);
+            };
+        }
+
+        // Handle device/metric selection
+        document.getElementById('deviceSelect').addEventListener('change', function() {
+            const deviceName = this.value;
+            loadMetrics(deviceName);
+            refreshData();
+        });
+
+        document.getElementById('metricSelect').addEventListener('change', function() {
+            refreshData();
+        });
+
+        // Handle auto-update toggle
+        const autoUpdateToggle = document.getElementById('autoUpdateToggle');
+        autoUpdateToggle.addEventListener('change', function() {
+            if (this.checked) {
+                connectSSE();
+            } else {
+                if (eventSource) {
+                    eventSource.close();
+                }
+            }
+        });
+
+        // Manual refresh function
+        async function refreshData() {
+            try {
+                const deviceName = document.getElementById('deviceSelect').value;
+                const metricName = document.getElementById('metricSelect').value;
+                const url = `/api/metric-values?device=${deviceName}&metric=${metricName}`;
+                
+                // First, get the latest metrics data
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Then, get the latest metrics summary
+                const summaryResponse = await fetch(`/dashboard?device=${deviceName}&metric=${metricName}`);
+                if (!summaryResponse.ok) {
+                    throw new Error(`HTTP error! status: ${summaryResponse.status}`);
+                }
+                
+                const text = await summaryResponse.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                
+                // Find the script tag containing our data
+                const scriptTag = Array.from(doc.scripts).find(script => 
+                    script.textContent.includes('initialData =')
+                );
+                
+                if (scriptTag) {
+                    // Extract just the metrics object from initialData
+                    const metricsMatch = scriptTag.textContent.match(/metrics:\s*({[\s\S]*?}),\s*devices:/);
+                    if (metricsMatch && metricsMatch[1]) {
+                        try {
+                            metricsData = JSON.parse(metricsMatch[1]);
+                            createGraphs(metricsData);
+                        } catch (parseError) {
+                            console.error('Error parsing metrics data:', parseError);
+                        }
+                    }
+                }
+                
+                // Reconnect SSE with new filters if auto-update is enabled
+                if (autoUpdateToggle.checked) {
+                    connectSSE();
+                }
+                
+                // Reload table data
+                loadMetricsTable(1);
+                
+                // Update the last update time
+                document.getElementById('lastUpdateTime').textContent = new Date().toLocaleTimeString();
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+            }
+        }
+    </script>
+</body>
+</html> 
