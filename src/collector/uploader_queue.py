@@ -1,94 +1,169 @@
-import asyncio
-import aiohttp
+import time
 import json
+import requests
 from typing import List, Dict
-from collections import deque
-from datetime import datetime
-from ..utils.config import get_settings
-from ..utils.logging_config import setup_logger
+from queue import Queue
+from threading import Thread, Event
+from ..utils.logging_config import get_logger
+from ..utils.config import config
 
-settings = get_settings()
-logger = setup_logger('uploader')
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        return super().default(obj)
+logger = get_logger('collector.uploader')
 
 class UploaderQueue:
-    def __init__(self):
-        self.queue = deque(maxlen=settings.MAX_QUEUE_SIZE)
-        self.batch_size = settings.UPLOAD_BATCH_SIZE
-        self.api_url = f"http://{settings.APP_HOST}:{settings.APP_PORT}/api/v1/aggregator/metrics/batch"
-        self.headers = {'Content-Type': 'application/json'}
-        logger.info(f"Initialized uploader queue with batch size: {self.batch_size}, max size: {settings.MAX_QUEUE_SIZE}")
+    def __init__(self, api_url: str, batch_size: int = 100, max_queue_size: int = 1000):
+        self.api_url = api_url
+        self.batch_size = batch_size
+        self.max_queue_size = max_queue_size
+        self.queue = Queue(maxsize=max_queue_size)
+        self.stop_event = Event()
+        self.upload_thread = None
+        self.collector_config = config.get_collector_config()
+        
+        logger.info(f"Initializing uploader queue with batch_size={batch_size}, max_queue_size={max_queue_size}")
+        logger.info(f"API URL: {api_url}")
 
     def validate_metric(self, metric: Dict) -> bool:
-        """Validate that a metric has all required fields with non-null values"""
+        """Validate a metric before adding it to the queue."""
         required_fields = ['device_name', 'metric_name', 'value']
+        
+        # Check for required fields
         for field in required_fields:
-            if field not in metric or metric[field] is None:
-                logger.warning(f"Invalid metric - missing or null {field}: {metric}")
+            if field not in metric:
+                logger.warning(f"Invalid metric: Missing required field '{field}'")
                 return False
+            if metric[field] is None:
+                logger.warning(f"Invalid metric: Field '{field}' is None")
+                return False
+        
+        # Validate value is numeric
+        try:
+            float(metric['value'])
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid metric: Value '{metric['value']}' is not numeric")
+            return False
+        
+        logger.debug(f"Validated metric: {metric}")
         return True
 
-    def add_metrics(self, metrics: List[Dict]):
-        """Add metrics to the queue"""
+    def add_metrics(self, metrics: List[Dict]) -> None:
+        """Add metrics to the upload queue."""
+        valid_metrics = []
+        invalid_metrics = []
+        
         for metric in metrics:
-            # Ensure metric has the correct format
-            formatted_metric = {
-                'device_name': metric.get('device_name'),
-                'metric_name': metric.get('metric_name'),
-                'value': metric.get('metric_value'),  # Note: input uses metric_value, but API expects value
-                'timestamp': metric.get('timestamp', datetime.utcnow())
+            if self.validate_metric(metric):
+                valid_metrics.append(metric)
+                logger.debug(f"Valid metric added to queue: {metric}")
+            else:
+                invalid_metrics.append(metric)
+                logger.warning(f"Invalid metric skipped: {metric}")
+        
+        if valid_metrics:
+            try:
+                for metric in valid_metrics:
+                    if self.queue.full():
+                        logger.warning("Queue is full, dropping oldest metric")
+                        self.queue.get()  # Remove oldest metric
+                    self.queue.put(metric)
+                logger.info(f"Added {len(valid_metrics)} valid metrics to queue")
+            except Exception as e:
+                logger.error(f"Error adding metrics to queue: {str(e)}", exc_info=True)
+        
+        if invalid_metrics:
+            logger.warning(f"Skipped {len(invalid_metrics)} invalid metrics")
+
+    def upload_batch(self) -> None:
+        """Upload a batch of metrics to the server."""
+        batch = []
+        try:
+            # Collect batch
+            while len(batch) < self.batch_size and not self.queue.empty():
+                metric = self.queue.get_nowait()
+                batch.append(metric)
+            
+            if not batch:
+                return
+            
+            logger.info(f"Uploading batch of {len(batch)} metrics")
+            
+            # Prepare request data
+            data = {
+                'metrics': batch,
+                'timestamp': time.time()
             }
             
-            if self.validate_metric(formatted_metric):
-                logger.debug(f"Adding valid metric to queue: {formatted_metric}")
-                self.queue.append(formatted_metric)
-            else:
-                logger.warning(f"Skipping invalid metric: {formatted_metric}")
-
-    async def upload_batch(self, session: aiohttp.ClientSession) -> bool:
-        """Upload a batch of metrics to the aggregator API"""
-        if not self.queue:
-            return True
-
-        # Get batch of metrics
-        batch = []
-        while len(batch) < self.batch_size and self.queue:
-            batch.append(self.queue.popleft())
-
-        try:
-            # Serialize datetime objects properly
-            json_data = json.dumps(batch, cls=DateTimeEncoder)
-            logger.debug(f"Uploading batch to {self.api_url}")
-            logger.debug(f"Batch data: {json_data}")
+            # Send request
+            response = requests.post(
+                f"{self.api_url}/metrics/batch",
+                json=batch,
+                headers={'Content-Type': 'application/json'}
+            )
             
-            async with session.post(self.api_url, data=json_data, headers=self.headers) as response:
-                if response.status == 200:
-                    logger.info(f"Successfully uploaded {len(batch)} metrics")
-                    return True
-                else:
-                    error_text = await response.text()
-                    logger.error(f"Failed to upload metrics. Status: {response.status}")
-                    logger.error(f"Error response: {error_text}")
-                    # Put metrics back in queue on failure
-                    for metric in batch:
-                        self.queue.append(metric)
-                    return False
-        except Exception as e:
-            logger.error(f"Error uploading metrics: {str(e)}", exc_info=True)
-            # Put metrics back in queue on error
+            # Handle response
+            if response.status_code == 200:
+                # Log successful upload with details
+                metrics_by_device = {}
+                for metric in batch:
+                    device = metric['device_name']
+                    if device not in metrics_by_device:
+                        metrics_by_device[device] = []
+                    metrics_by_device[device].append(metric['metric_name'])
+                
+                for device, metric_names in metrics_by_device.items():
+                    logger.info(f"Successfully uploaded {len(metric_names)} metrics for device '{device}': {', '.join(metric_names)}")
+                
+                # Log summary
+                logger.info(f"Upload successful - Total metrics: {len(batch)}, Response time: {response.elapsed.total_seconds():.2f}s")
+            else:
+                logger.error(f"Failed to upload metrics. Status: {response.status_code}, Response: {response.text}")
+                # Put failed metrics back in queue
+                for metric in batch:
+                    if self.queue.full():
+                        logger.warning("Queue is full, dropping oldest metric")
+                        self.queue.get()
+                    self.queue.put(metric)
+                logger.info("Failed metrics requeued for retry")
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Network error while uploading metrics: {str(e)}", exc_info=True)
+            # Put failed metrics back in queue
             for metric in batch:
-                self.queue.append(metric)
-            return False
+                if self.queue.full():
+                    logger.warning("Queue is full, dropping oldest metric")
+                    self.queue.get()
+                self.queue.put(metric)
+            logger.info("Failed metrics requeued for retry")
+        except Exception as e:
+            logger.error(f"Unexpected error while uploading metrics: {str(e)}", exc_info=True)
 
-    async def start_uploader(self):
-        """Start the uploader process"""
-        logger.info(f"Starting uploader with interval: {settings.UPLOAD_INTERVAL} seconds")
-        async with aiohttp.ClientSession() as session:
-            while True:
-                await self.upload_batch(session)
-                await asyncio.sleep(settings.UPLOAD_INTERVAL) 
+    def start_uploader(self) -> None:
+        """Start the uploader thread."""
+        if self.upload_thread is not None and self.upload_thread.is_alive():
+            logger.warning("Uploader thread is already running")
+            return
+        
+        logger.info("Starting uploader thread")
+        self.stop_event.clear()
+        self.upload_thread = Thread(target=self._uploader_loop)
+        self.upload_thread.daemon = True
+        self.upload_thread.start()
+
+    def stop_uploader(self) -> None:
+        """Stop the uploader thread."""
+        logger.info("Stopping uploader thread")
+        self.stop_event.set()
+        if self.upload_thread is not None:
+            self.upload_thread.join()
+        logger.info("Uploader thread stopped")
+
+    def _uploader_loop(self) -> None:
+        """Main loop for the uploader thread."""
+        logger.info("Uploader loop started")
+        while not self.stop_event.is_set():
+            try:
+                self.upload_batch()
+                time.sleep(self.collector_config['upload_interval'])
+            except Exception as e:
+                logger.error(f"Error in uploader loop: {str(e)}", exc_info=True)
+                time.sleep(5)  # Wait before retrying
+        logger.info("Uploader loop stopped") 

@@ -1,34 +1,33 @@
-from flask import Flask, redirect, url_for
-from ..database.database import init_app, init_db
-from ..utils.config import get_settings
-from .routes import aggregator_bp, reporting_bp, views_bp
+from flask import Flask
+from src.database.database import init_db
+from src.utils.logging_config import get_logger
+from src.utils.config import config
 
-settings = get_settings()
+logger = get_logger('web_app')
 
 def create_app():
+    """Create and configure the Flask application."""
+    logger.info("Creating Flask application")
+    
     app = Flask(__name__)
     
     # Initialize database
-    init_app(app)
-    
-    # Register blueprints
-    app.register_blueprint(aggregator_bp, url_prefix='/api/v1/aggregator')
-    app.register_blueprint(reporting_bp, url_prefix='/api/v1/reports')
-    app.register_blueprint(views_bp)
-    
-    # Create database tables
+    logger.info("Initializing database")
     init_db(app)
     
-    @app.route('/')
-    def root():
-        return redirect(url_for('views.dashboard'))
+    # Register blueprints
+    from .routes import views, aggregator
+    app.register_blueprint(views.views_bp)
+    app.register_blueprint(aggregator.aggregator_bp, url_prefix='/api/v1/aggregator')
     
     return app
 
 if __name__ == '__main__':
     app = create_app()
+    web_config = config.get_web_config()
+    logger.info(f"Starting web server on {web_config['host']}:{web_config['port']}")
     app.run(
-        host=settings.APP_HOST,
-        port=settings.APP_PORT,
-        debug=settings.DEBUG
+        host=web_config['host'],
+        port=web_config['port'],
+        debug=web_config['debug']
     ) 

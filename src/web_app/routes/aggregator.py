@@ -7,10 +7,12 @@ from ...database.models import Device, MetricInfo, MetricValue
 aggregator_bp = Blueprint('aggregator', __name__)
 
 class MetricSchema(Schema):
+    device_id = fields.Str(required=True)
     device_name = fields.Str(required=True)
     metric_name = fields.Str(required=True)
     metric_value = fields.Float(required=True)
     timestamp = fields.DateTime(missing=lambda: datetime.utcnow())
+    metric_metadata = fields.Dict()
 
 metric_schema = MetricSchema()
 metrics_schema = MetricSchema(many=True)
@@ -22,9 +24,12 @@ def collect_metric():
     data = metric_schema.load(request.json)
     
     # Get or create device
-    device = Device.query.filter_by(name=data['device_name']).first()
+    device = Device.query.filter_by(id=data['device_id']).first()
     if not device:
-        device = Device(name=data['device_name'])
+        device = Device(
+            id=data['device_id'],
+            name=data['device_name']
+        )
         db.session.add(device)
         db.session.flush()
 
@@ -33,7 +38,6 @@ def collect_metric():
     if not metric_info:
         metric_info = MetricInfo(
             name=data['metric_name'],
-            description=f"Metric for {data['metric_name']}",
             unit="units"
         )
         db.session.add(metric_info)
@@ -44,7 +48,8 @@ def collect_metric():
         device_id=device.id,
         metric_info_id=metric_info.id,
         metric_value=data['metric_value'],
-        timestamp=data['timestamp']
+        timestamp=data['timestamp'],
+        metric_metadata=data.get('metric_metadata')
     )
     db.session.add(metric)
     db.session.commit()
@@ -58,15 +63,20 @@ def upload_metrics_batch():
     
     try:
         for metric_data in metrics_batch:
+            device_id = metric_data.get('device_id')
             device_name = metric_data.get('device_name')
             metric_name = metric_data.get('metric_name')
             metric_value = metric_data.get('value')
             timestamp = datetime.fromisoformat(metric_data.get('timestamp'))
+            metric_metadata = metric_data.get('metric_metadata')
 
             # Get or create device
-            device = Device.query.filter_by(name=device_name).first()
+            device = Device.query.filter_by(id=device_id).first()
             if not device:
-                device = Device(name=device_name)
+                device = Device(
+                    id=device_id,
+                    name=device_name
+                )
                 db.session.add(device)
                 db.session.flush()
 
@@ -75,7 +85,6 @@ def upload_metrics_batch():
             if not metric_info:
                 metric_info = MetricInfo(
                     name=metric_name,
-                    description=f"Metric for {metric_name}",
                     unit="units"
                 )
                 db.session.add(metric_info)
@@ -86,7 +95,8 @@ def upload_metrics_batch():
                 device_id=device.id,
                 metric_info_id=metric_info.id,
                 metric_value=metric_value,
-                timestamp=timestamp
+                timestamp=timestamp,
+                metric_metadata=metric_metadata
             )
             db.session.add(metric)
 
