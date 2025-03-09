@@ -105,6 +105,19 @@
                     <input type="datetime-local" class="form-control" id="endDate">
                 </div>
             </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" onclick="controlCollectors('start')">
+                            <i class="bi bi-play-fill"></i> Start Collectors
+                        </button>
+                        <button class="btn btn-danger" onclick="controlCollectors('stop')">
+                            <i class="bi bi-stop-fill"></i> Stop Collectors
+                        </button>
+                        <span id="collectorStatus" class="ms-3 align-self-center"></span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Gauges Section -->
@@ -395,7 +408,155 @@
                     }
                 {% endfor %}
             {% endfor %}
+
+            // Initialize SSE connections
+            initControlSSE();
+            initMetricsSSE();
         });
+
+        // Initialize control SSE connection
+        function initControlSSE() {
+            console.log('Initializing control SSE connection');
+            
+            // Close any existing connection
+            if (window.controlEventSource) {
+                console.log('Closing existing control SSE connection');
+                window.controlEventSource.close();
+            }
+            
+            // Create new connection
+            window.controlEventSource = new EventSource('/api/v1/aggregator/control');
+            
+            window.controlEventSource.onopen = function() {
+                console.log('Control SSE connection established');
+            };
+            
+            window.controlEventSource.onmessage = function(event) {
+                console.log('Control SSE message received:', event.data);
+                const status = event.data.trim();
+                updateCollectorStatus(status === 'RUNNING' ? 'start' : 'stop');
+            };
+            
+            window.controlEventSource.onerror = function(error) {
+                console.error('Control SSE Error:', error);
+                // Try to reconnect after a delay
+                setTimeout(function() {
+                    console.log('Attempting to reconnect control SSE');
+                    initControlSSE();
+                }, 5000);
+            };
+            
+            // Add event listener for page unload to close connection
+            window.addEventListener('beforeunload', function() {
+                if (window.controlEventSource) {
+                    console.log('Closing control SSE connection due to page unload');
+                    window.controlEventSource.close();
+                }
+            });
+        }
+
+        // Initialize metrics SSE connection
+        function initMetricsSSE() {
+            console.log('Initializing metrics SSE connection');
+            
+            // Close any existing connection
+            if (window.metricsEventSource) {
+                console.log('Closing existing metrics SSE connection');
+                window.metricsEventSource.close();
+            }
+            
+            // Create new connection
+            window.metricsEventSource = new EventSource('/api/v1/aggregator/metrics/updates');
+            
+            window.metricsEventSource.onopen = function() {
+                console.log('Metrics SSE connection established');
+            };
+            
+            window.metricsEventSource.onmessage = function(event) {
+                console.log('Metrics SSE message received:', event.data);
+                try {
+                    const updates = JSON.parse(event.data);
+                    updateMetrics(updates);
+                } catch (error) {
+                    console.error('Error parsing metrics update:', error);
+                }
+            };
+            
+            window.metricsEventSource.onerror = function(error) {
+                console.error('Metrics SSE Error:', error);
+                // Try to reconnect after a delay
+                setTimeout(function() {
+                    console.log('Attempting to reconnect metrics SSE');
+                    initMetricsSSE();
+                }, 5000);
+            };
+            
+            // Add event listener for page unload to close connection
+            window.addEventListener('beforeunload', function() {
+                if (window.metricsEventSource) {
+                    console.log('Closing metrics SSE connection due to page unload');
+                    window.metricsEventSource.close();
+                }
+            });
+        }
+
+        // Update metrics with real-time data
+        function updateMetrics(updates) {
+            updates.forEach(update => {
+                const device = update.device;
+                const metric = update.metric;
+                const value = update.value;
+                
+                // Update gauge if it exists
+                const safeDevice = device.replace(/[ .]/g, '_');
+                const safeMetric = metric.replace(/[ .]/g, '_');
+                const gaugeId = `gauge-${safeDevice}-${safeMetric}`;
+                const gaugeElement = document.getElementById(gaugeId);
+                
+                if (gaugeElement) {
+                    // Find the value display element
+                    const cardElement = gaugeElement.closest('.metric-card');
+                    if (cardElement) {
+                        const valueElement = cardElement.querySelector('.metric-value');
+                        if (valueElement) {
+                            valueElement.textContent = value.toFixed(2);
+                        }
+                        
+                        // Update the gauge
+                        const gaugeInstance = Gauge.Collection.get(gaugeElement);
+                        if (gaugeInstance) {
+                            // Normalize the value to 0-100 range
+                            // This is a simplification - ideally we'd use the min/max from the server
+                            const normalizedValue = Math.min(Math.max(value, 0), 100);
+                            gaugeInstance.set(normalizedValue);
+                        }
+                    }
+                }
+                
+                // Update chart if it exists
+                const chartId = `chart-${safeDevice}-${safeMetric}`;
+                const chartElement = document.getElementById(chartId);
+                
+                if (chartElement) {
+                    const chartInstance = Chart.getChart(chartElement);
+                    if (chartInstance) {
+                        // Add the new data point
+                        const timestamp = new Date(update.timestamp).toLocaleTimeString();
+                        chartInstance.data.labels.push(timestamp);
+                        chartInstance.data.datasets[0].data.push(value);
+                        
+                        // Remove old data points if there are too many
+                        if (chartInstance.data.labels.length > 20) {
+                            chartInstance.data.labels.shift();
+                            chartInstance.data.datasets[0].data.shift();
+                        }
+                        
+                        // Update the chart
+                        chartInstance.update();
+                    }
+                }
+            });
+        }
 
         // Set default date range and initialize filters
         function initializeDateFilters() {
@@ -437,6 +598,33 @@
         document.getElementById('metricSelect').addEventListener('change', updateDashboard);
         document.getElementById('startDate').addEventListener('change', updateDashboard);
         document.getElementById('endDate').addEventListener('change', updateDashboard);
+
+        // Add this to your JavaScript section
+        function controlCollectors(action) {
+            fetch(`/api/v1/aggregator/control/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateCollectorStatus(action);
+                } else {
+                    alert('Error controlling collectors');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function updateCollectorStatus(status) {
+            const statusElement = document.getElementById('collectorStatus');
+            const statusText = status === 'start' ? 'Collectors Running' : 'Collectors Stopped';
+            const statusClass = status === 'start' ? 'text-success' : 'text-danger';
+            statusElement.textContent = statusText;
+            statusElement.className = `ms-3 align-self-center ${statusClass}`;
+        }
     </script>
 </body>
 </html> 

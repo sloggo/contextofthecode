@@ -2,6 +2,7 @@ from flask import Flask
 from src.database.database import init_db
 from src.utils.logging_config import get_logger
 from src.utils.config import config
+from src.web_app.routes import views, aggregator
 
 logger = get_logger('web_app')
 
@@ -11,14 +12,18 @@ def create_app():
     
     app = Flask(__name__)
     
+    # Configure the app
+    app.config['SECRET_KEY'] = config.web.secret_key
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.get_database_url()
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Register blueprints
+    app.register_blueprint(views.views_bp)
+    app.register_blueprint(aggregator.aggregator_bp, url_prefix='/api/v1/aggregator')
+    
     # Initialize database
     logger.info("Initializing database")
     init_db(app)
-    
-    # Register blueprints
-    from .routes import views, aggregator
-    app.register_blueprint(views.views_bp)
-    app.register_blueprint(aggregator.aggregator_bp, url_prefix='/api/v1/aggregator')
     
     return app
 

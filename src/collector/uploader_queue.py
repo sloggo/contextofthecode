@@ -1,6 +1,7 @@
 import time
 import json
 import requests
+import threading
 from typing import List, Dict
 from queue import Queue
 from threading import Thread, Event
@@ -8,6 +9,59 @@ from ..utils.logging_config import get_logger
 from ..utils.config import config
 
 logger = get_logger('collector.uploader')
+
+class SSEClient:
+    def __init__(self, url):
+        self.url = url
+        self.session = requests.Session()
+        self.running = True
+        
+    def events(self):
+        """Generator for SSE events."""
+        while self.running:
+            try:
+                response = self.session.get(
+                    self.url, 
+                    stream=True,
+                    headers={'Accept': 'text/event-stream'}
+                )
+                
+                if response.status_code != 200:
+                    logger.error(f"SSE connection failed with status {response.status_code}")
+                    time.sleep(5)
+                    continue
+                
+                # Process the stream
+                buffer = ""
+                for chunk in response.iter_content(chunk_size=1):
+                    if not self.running:
+                        break
+                        
+                    if chunk:
+                        chunk_str = chunk.decode('utf-8')
+                        buffer += chunk_str
+                        
+                        if buffer.endswith('\n\n'):
+                            # Complete event received
+                            lines = buffer.split('\n')
+                            data = None
+                            
+                            for line in lines:
+                                if line.startswith('data:'):
+                                    data = line[5:].strip()
+                            
+                            if data:
+                                yield data
+                                
+                            buffer = ""
+            except Exception as e:
+                logger.error(f"SSE connection error: {e}")
+                time.sleep(5)
+                
+    def close(self):
+        """Close the SSE connection."""
+        self.running = False
+        self.session.close()
 
 class UploaderQueue:
     def __init__(self, api_url: str, batch_size: int = 100, max_queue_size: int = 1000):
@@ -18,9 +72,40 @@ class UploaderQueue:
         self.stop_event = Event()
         self.upload_thread = None
         self.collector_config = config.get_collector_config()
+        self.running = True
+        self.sse_client = None
         
         logger.info(f"Initializing uploader queue with batch_size={batch_size}, max_queue_size={max_queue_size}")
         logger.info(f"API URL: {api_url}")
+
+        # Start the control listener thread
+        self.control_thread = Thread(target=self._listen_for_control, daemon=True)
+        self.control_thread.start()
+
+    def _listen_for_control(self):
+        """Listen for control messages from the server."""
+        control_url = f"{self.api_url}/control"
+        logger.info(f"Starting SSE control listener at {control_url}")
+        
+        self.sse_client = SSEClient(control_url)
+        
+        try:
+            for data in self.sse_client.events():
+                logger.info(f"Received control message: {data}")
+                
+                if data == 'STOP' and self.running:
+                    self.running = False
+                    logger.info("Stopping collector due to control message")
+                    self.stop_event.set()
+                elif data == 'RUNNING' and not self.running:
+                    self.running = True
+                    logger.info("Starting collector due to control message")
+                    self.stop_event.clear()
+        except Exception as e:
+            logger.error(f"Control listener error: {e}")
+        finally:
+            if self.sse_client:
+                self.sse_client.close()
 
     def validate_metric(self, metric: Dict) -> bool:
         """Validate a metric before adding it to the queue."""
@@ -47,6 +132,10 @@ class UploaderQueue:
 
     def add_metrics(self, metrics: List[Dict]) -> None:
         """Add metrics to the upload queue."""
+        if not self.running:
+            logger.info("Collector is stopped, skipping metrics")
+            return
+            
         valid_metrics = []
         invalid_metrics = []
         
@@ -161,7 +250,8 @@ class UploaderQueue:
         logger.info("Uploader loop started")
         while not self.stop_event.is_set():
             try:
-                self.upload_batch()
+                if self.running:
+                    self.upload_batch()
                 time.sleep(self.collector_config['upload_interval'])
             except Exception as e:
                 logger.error(f"Error in uploader loop: {str(e)}", exc_info=True)

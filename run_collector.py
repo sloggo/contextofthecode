@@ -41,6 +41,12 @@ def main():
         
         while True:
             try:
+                # Check if we should stop
+                if not uploader.running:
+                    logger.info("Collector is stopped, waiting for start command...")
+                    time.sleep(collector_config['collection_interval'])
+                    continue
+                
                 # Collect metrics
                 metrics = collector.collect_metrics()
                 
