@@ -1,0 +1,116 @@
+2025-03-11 20:59:05,521 - collector.pc - INFO - [pc_collector.py:21] - Initialized PC collector for device: isestudent1
+2025-03-11 20:59:08,725 - utils.system_info - INFO - [system_info.py:19] - Retrieved system info - UUID: 4C4C4544-0053-4610-8059-B8C04F545133, Name: isestudent1
+2025-03-11 20:59:08,725 - collector.stock - INFO - [stock_collector.py:27] - Initializing stock collector with device name: STOCK, interval: 300s
+2025-03-11 20:59:08,725 - collector.stock - INFO - [stock_collector.py:28] - Default stocks to monitor: AAPL, MSFT, GOOGL
+2025-03-11 20:59:08,725 - collector.stock - INFO - [stock_collector.py:29] - Using Alpha Vantage API key: 5MHV************
+2025-03-11 20:59:08,741 - collector.uploader - INFO - [uploader_queue.py:79] - Initializing uploader queue with batch_size=100, max_queue_size=1000
+2025-03-11 20:59:08,741 - collector.uploader - INFO - [uploader_queue.py:80] - API URL: https://contextofthecode.onrender.com/api/v1/aggregator
+2025-03-11 20:59:08,744 - collector.uploader - INFO - [uploader_queue.py:89] - Starting SSE control listener at https://contextofthecode.onrender.com/api/v1/aggregator/control
+2025-03-11 21:03:24,081 - collector.pc - INFO - [pc_collector.py:21] - Initialized PC collector for device: isestudent1
+2025-03-11 21:03:27,032 - utils.system_info - INFO - [system_info.py:19] - Retrieved system info - UUID: 4C4C4544-0053-4610-8059-B8C04F545133, Name: isestudent1
+2025-03-11 21:03:27,032 - collector.stock - INFO - [stock_collector.py:27] - Initializing stock collector with device name: STOCK, interval: 300s
+2025-03-11 21:03:27,040 - collector.stock - INFO - [stock_collector.py:28] - Default stocks to monitor: AAPL, MSFT, GOOGL
+2025-03-11 21:03:27,041 - collector.stock - INFO - [stock_collector.py:29] - Using Alpha Vantage API key: 5MHV************
+2025-03-11 21:03:27,041 - collector.uploader - INFO - [uploader_queue.py:77] - Initializing uploader queue with batch_size=100, max_queue_size=1000
+2025-03-11 21:03:27,042 - collector.uploader - INFO - [uploader_queue.py:78] - API URL: https://contextofthecode.onrender.com/api/v1/aggregator
+2025-03-11 21:03:27,043 - collector.uploader - INFO - [uploader_queue.py:87] - Starting SSE control listener at https://contextofthecode.onrender.com/api/v1/aggregator/control
+2025-03-11 21:03:27,043 - collector.uploader - INFO - [uploader_queue.py:290] - Starting uploader thread
+2025-03-11 21:03:27,043 - collector.uploader - INFO - [uploader_queue.py:312] - Uploader worker thread started
+2025-03-11 21:03:27,043 - collector.pc - INFO - [pc_collector.py:80] - Starting metric collection for device: isestudent1
+2025-03-11 21:03:27,669 - collector.uploader - INFO - [uploader_queue.py:121] - Received control message: RUNNING
+2025-03-11 21:03:28,047 - collector.pc - INFO - [pc_collector.py:88] - Successfully collected CPU metrics: 5.0%
+2025-03-11 21:03:28,329 - collector.pc - INFO - [pc_collector.py:96] - Successfully collected memory metrics: 59.2%
+2025-03-11 21:03:28,333 - collector.pc - INFO - [pc_collector.py:100] - Completed metric collection. Total metrics collected: 2
+2025-03-11 21:03:28,334 - collector.uploader - INFO - [uploader_queue.py:221] - Added 2 valid metrics to queue
+2025-03-11 21:03:28,334 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 2 metrics
+2025-03-11 21:03:28,334 - collector.stock - INFO - [stock_collector.py:110] - Starting stock price collection for 3 stocks
+2025-03-11 21:03:28,334 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 2 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:03:29,082 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for AAPL: $220.84
+2025-03-11 21:03:29,082 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for AAPL: $220.84
+2025-03-11 21:03:29,201 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 2 metrics
+2025-03-11 21:03:29,201 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 2 metrics
+2025-03-11 21:03:29,716 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for MSFT: $380.45
+2025-03-11 21:03:29,721 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for MSFT: $380.45
+2025-03-11 21:03:30,433 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for GOOGL: $164.04
+2025-03-11 21:03:30,433 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for GOOGL: $164.04
+2025-03-11 21:03:30,433 - collector.stock - INFO - [stock_collector.py:128] - Completed stock metric collection. Total metrics collected: 3
+2025-03-11 21:03:30,433 - collector.uploader - INFO - [uploader_queue.py:221] - Added 3 valid metrics to queue
+2025-03-11 21:03:30,433 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 3 metrics
+2025-03-11 21:03:30,433 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 3 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:03:31,250 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 3 metrics
+2025-03-11 21:03:31,265 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 3 metrics
+2025-03-11 21:04:07,650 - collector.uploader - INFO - [uploader_queue.py:121] - Received control message: STOPPED
+2025-03-11 21:04:07,650 - collector.uploader - INFO - [uploader_queue.py:125] - Stopping collector due to control message
+2025-03-11 21:04:17,729 - collector.uploader - INFO - [uploader_queue.py:121] - Received control message: RUNNING
+2025-03-11 21:04:17,729 - collector.uploader - INFO - [uploader_queue.py:128] - Starting collector due to control message
+2025-03-11 21:04:30,439 - collector.pc - INFO - [pc_collector.py:80] - Starting metric collection for device: isestudent1
+2025-03-11 21:04:31,443 - collector.pc - INFO - [pc_collector.py:88] - Successfully collected CPU metrics: 1.0%
+2025-03-11 21:04:31,467 - collector.pc - INFO - [pc_collector.py:96] - Successfully collected memory metrics: 58.5%
+2025-03-11 21:04:31,469 - collector.pc - INFO - [pc_collector.py:100] - Completed metric collection. Total metrics collected: 2
+2025-03-11 21:04:31,481 - collector.uploader - INFO - [uploader_queue.py:221] - Added 2 valid metrics to queue
+2025-03-11 21:04:31,481 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 2 metrics
+2025-03-11 21:04:31,483 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 2 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:04:31,483 - collector.stock - INFO - [stock_collector.py:110] - Starting stock price collection for 3 stocks
+2025-03-11 21:04:32,285 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for AAPL: $220.84
+2025-03-11 21:04:32,288 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for AAPL: $220.84
+2025-03-11 21:04:32,313 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 2 metrics
+2025-03-11 21:04:32,313 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 2 metrics
+2025-03-11 21:04:33,303 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for MSFT: $380.45
+2025-03-11 21:04:33,311 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for MSFT: $380.45
+2025-03-11 21:04:34,115 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for GOOGL: $164.04
+2025-03-11 21:04:34,130 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for GOOGL: $164.04
+2025-03-11 21:04:34,130 - collector.stock - INFO - [stock_collector.py:128] - Completed stock metric collection. Total metrics collected: 3
+2025-03-11 21:04:34,130 - collector.uploader - INFO - [uploader_queue.py:221] - Added 3 valid metrics to queue
+2025-03-11 21:04:34,130 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 3 metrics
+2025-03-11 21:04:34,130 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 3 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:04:35,139 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 3 metrics
+2025-03-11 21:04:35,155 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 3 metrics
+2025-03-11 21:05:34,143 - collector.pc - INFO - [pc_collector.py:80] - Starting metric collection for device: isestudent1
+2025-03-11 21:05:35,183 - collector.pc - INFO - [pc_collector.py:88] - Successfully collected CPU metrics: 11.3%
+2025-03-11 21:05:35,206 - collector.pc - INFO - [pc_collector.py:96] - Successfully collected memory metrics: 57.8%
+2025-03-11 21:05:35,212 - collector.pc - INFO - [pc_collector.py:100] - Completed metric collection. Total metrics collected: 2
+2025-03-11 21:05:35,212 - collector.uploader - INFO - [uploader_queue.py:221] - Added 2 valid metrics to queue
+2025-03-11 21:05:35,212 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 2 metrics
+2025-03-11 21:05:35,212 - collector.stock - INFO - [stock_collector.py:110] - Starting stock price collection for 3 stocks
+2025-03-11 21:05:35,212 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 2 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:05:36,560 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for AAPL: $220.84
+2025-03-11 21:05:36,560 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for AAPL: $220.84
+2025-03-11 21:05:36,653 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 2 metrics
+2025-03-11 21:05:36,661 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 2 metrics
+2025-03-11 21:05:38,025 - collector.stock - INFO - [stock_collector.py:87] - Successfully fetched price for MSFT: $380.45
+2025-03-11 21:05:38,031 - collector.stock - INFO - [stock_collector.py:126] - Added stock price metric for MSFT: $380.45
+2025-03-11 21:05:40,476 - collector.stock - ERROR - [stock_collector.py:98] - Failed to fetch price for GOOGL: {'Information': 'We have detected your API key as 5MHVXMFVPVG0NWGM and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.'}
+2025-03-11 21:05:40,508 - collector.stock - INFO - [stock_collector.py:128] - Completed stock metric collection. Total metrics collected: 2
+2025-03-11 21:05:40,508 - collector.uploader - INFO - [uploader_queue.py:221] - Added 2 valid metrics to queue
+2025-03-11 21:05:40,508 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 2 metrics
+2025-03-11 21:05:40,508 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 2 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:05:41,920 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 2 metrics
+2025-03-11 21:05:41,920 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 2 metrics
+2025-03-11 21:06:40,516 - collector.pc - INFO - [pc_collector.py:80] - Starting metric collection for device: isestudent1
+2025-03-11 21:06:41,523 - collector.pc - INFO - [pc_collector.py:88] - Successfully collected CPU metrics: 14.0%
+2025-03-11 21:06:41,560 - collector.pc - INFO - [pc_collector.py:96] - Successfully collected memory metrics: 61.3%
+2025-03-11 21:06:41,560 - collector.pc - INFO - [pc_collector.py:100] - Completed metric collection. Total metrics collected: 2
+2025-03-11 21:06:41,560 - collector.uploader - INFO - [uploader_queue.py:221] - Added 2 valid metrics to queue
+2025-03-11 21:06:41,560 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 2 metrics
+2025-03-11 21:06:41,568 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 2 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:06:41,568 - collector.stock - INFO - [stock_collector.py:110] - Starting stock price collection for 3 stocks
+2025-03-11 21:06:42,558 - collector.stock - ERROR - [stock_collector.py:98] - Failed to fetch price for AAPL: {'Information': 'We have detected your API key as 5MHVXMFVPVG0NWGM and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.'}
+2025-03-11 21:06:42,968 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 2 metrics
+2025-03-11 21:06:42,971 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 2 metrics
+2025-03-11 21:06:43,266 - collector.stock - ERROR - [stock_collector.py:98] - Failed to fetch price for MSFT: {'Information': 'We have detected your API key as 5MHVXMFVPVG0NWGM and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.'}
+2025-03-11 21:06:43,889 - collector.stock - ERROR - [stock_collector.py:98] - Failed to fetch price for GOOGL: {'Information': 'We have detected your API key as 5MHVXMFVPVG0NWGM and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.'}
+2025-03-11 21:06:43,889 - collector.stock - INFO - [stock_collector.py:128] - Completed stock metric collection. Total metrics collected: 0
+2025-03-11 21:07:43,896 - collector.pc - INFO - [pc_collector.py:80] - Starting metric collection for device: isestudent1
+2025-03-11 21:07:44,899 - collector.pc - INFO - [pc_collector.py:88] - Successfully collected CPU metrics: 6.0%
+2025-03-11 21:07:44,912 - collector.pc - INFO - [pc_collector.py:96] - Successfully collected memory metrics: 61.8%
+2025-03-11 21:07:44,916 - collector.pc - INFO - [pc_collector.py:100] - Completed metric collection. Total metrics collected: 2
+2025-03-11 21:07:44,918 - collector.uploader - INFO - [uploader_queue.py:221] - Added 2 valid metrics to queue
+2025-03-11 21:07:44,918 - collector.uploader - INFO - [uploader_queue.py:340] - Uploading batch of 2 metrics
+2025-03-11 21:07:44,919 - collector.stock - INFO - [stock_collector.py:110] - Starting stock price collection for 3 stocks
+2025-03-11 21:07:44,921 - collector.uploader - INFO - [uploader_queue.py:260] - Uploading 2 metrics to https://contextofthecode.onrender.com/api/v1/aggregator/metrics/batch
+2025-03-11 21:07:45,887 - collector.uploader - INFO - [uploader_queue.py:272] - Successfully uploaded 2 metrics
+2025-03-11 21:07:45,887 - collector.uploader - INFO - [uploader_queue.py:342] - Successfully uploaded 2 metrics
+2025-03-11 21:07:45,963 - collector.stock - ERROR - [stock_collector.py:98] - Failed to fetch price for AAPL: {'Information': 'We have detected your API key as 5MHVXMFVPVG0NWGM and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.'}
+2025-03-11 21:07:46,837 - collector.stock - ERROR - [stock_collector.py:98] - Failed to fetch price for MSFT: {'Information': 'We have detected your API key as 5MHVXMFVPVG0NWGM and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.'}
+2025-03-11 21:07:47,564 - collector.stock - ERROR - [stock_collector.py:98] - Failed to fetch price for GOOGL: {'Information': 'We have detected your API key as 5MHVXMFVPVG0NWGM and our standard API rate limit is 25 requests per day. Please subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly remove all daily rate limits.'}
+2025-03-11 21:07:47,564 - collector.stock - INFO - [stock_collector.py:128] - Completed stock metric collection. Total metrics collected: 0

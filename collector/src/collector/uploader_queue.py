@@ -3,10 +3,12 @@ import json
 import requests
 import threading
 from typing import List, Dict
-from queue import Queue
+from queue import Queue, Empty, Full
 from threading import Thread, Event
 from ..utils.logging_config import get_logger
 from ..utils.config import config
+from datetime import datetime
+from ..utils.time_utils import get_utc_timestamp, format_timestamp
 
 logger = get_logger('collector.uploader')
 
@@ -64,19 +66,17 @@ class SSEClient:
         self.session.close()
 
 class UploaderQueue:
-    def __init__(self, api_url: str, batch_size: int = 100, max_queue_size: int = 1000):
+    def __init__(self, api_url: str, batch_size: int = None, max_queue_size: int = None):
         self.api_url = api_url
-        self.batch_size = batch_size
-        self.max_queue_size = max_queue_size
-        self.queue = Queue(maxsize=max_queue_size)
+        self.batch_size = batch_size or config.collector.batch_size
+        self.max_queue_size = max_queue_size or config.collector.max_queue_size
+        self.queue = Queue(maxsize=self.max_queue_size)
         self.stop_event = Event()
         self.upload_thread = None
-        self.collector_config = config.get_collector_config()
         self.running = True
-        self.sse_client = None
         
-        logger.info(f"Initializing uploader queue with batch_size={batch_size}, max_queue_size={max_queue_size}")
-        logger.info(f"API URL: {api_url}")
+        logger.info(f"Initializing uploader queue with batch_size={self.batch_size}, max_queue_size={self.max_queue_size}")
+        logger.info(f"API URL: {self.api_url}")
 
         # Start the control listener thread
         self.control_thread = Thread(target=self._listen_for_control, daemon=True)
@@ -139,28 +139,41 @@ class UploaderQueue:
                 time.sleep(10)
 
     def validate_metric(self, metric: Dict) -> bool:
-        """Validate a metric before adding it to the queue."""
-        required_fields = ['device_name', 'metric_name', 'value']
+        """Validate a metric."""
+        # Check required fields
+        if 'device_name' not in metric or metric['device_name'] is None:
+            logger.warning(f"Invalid metric: Missing or null device_name")
+            return False
         
-        # Check for required fields
-        for field in required_fields:
-            if field not in metric:
-                logger.warning(f"Invalid metric: Missing required field '{field}'")
-                return False
-            if metric[field] is None:
-                logger.warning(f"Invalid metric: Field '{field}' is None")
-                return False
+        if 'metric_name' not in metric or metric['metric_name'] is None:
+            logger.warning(f"Invalid metric: Missing or null metric_name")
+            return False
+        
+        # Check for value (could be in 'value' or 'metric_value')
+        value = None
+        if 'value' in metric and metric['value'] is not None:
+            value = metric['value']
+        elif 'metric_value' in metric and metric['metric_value'] is not None:
+            value = metric['metric_value']
+        else:
+            logger.warning(f"Invalid metric: Missing or null value/metric_value")
+            return False
         
         # Validate value is numeric
         try:
-            value = float(metric['value'])
+            value = float(value)
             if value is None:
                 logger.warning(f"Invalid metric: Value is None")
                 return False
+            
             # Update the metric with the validated value
-            metric['value'] = value
+            if 'value' in metric:
+                metric['value'] = value
+            if 'metric_value' in metric:
+                metric['metric_value'] = value
+            
         except (ValueError, TypeError):
-            logger.warning(f"Invalid metric: Value '{metric['value']}' is not numeric")
+            logger.warning(f"Invalid metric: Value '{value}' is not numeric")
             return False
         
         logger.debug(f"Validated metric: {metric}")
@@ -177,7 +190,6 @@ class UploaderQueue:
             
         # Ensure timestamp is in the correct format
         if 'timestamp' in prepared and not isinstance(prepared['timestamp'], str):
-            from datetime import datetime
             if isinstance(prepared['timestamp'], datetime):
                 prepared['timestamp'] = prepared['timestamp'].isoformat()
                 
@@ -214,86 +226,132 @@ class UploaderQueue:
         if invalid_metrics:
             logger.warning(f"Skipped {len(invalid_metrics)} invalid metrics")
 
-    def upload_batch(self) -> None:
+    def _upload_metrics_batch(self, metrics_batch):
         """Upload a batch of metrics to the server."""
-        batch = []
         try:
-            # Collect batch
-            while len(batch) < self.batch_size and not self.queue.empty():
-                metric = self.queue.get_nowait()
-                batch.append(metric)
+            # Ensure all metrics have the correct format
+            formatted_batch = []
+            for metric in metrics_batch:
+                # Create a properly formatted metric
+                formatted_metric = {
+                    "device_name": metric.get('device_name'),
+                    "metric_name": metric.get('metric_name'),
+                    # Ensure we have a valid metric value
+                    "metric_value": metric.get('metric_value', metric.get('value')),
+                    # Use the timestamp from the metric or generate a new one
+                    "timestamp": metric.get('timestamp', get_utc_timestamp())
+                }
+                
+                # Add device_id if available
+                if 'device_id' in metric:
+                    formatted_metric['device_id'] = metric['device_id']
+                    
+                # Add metadata if available
+                if 'metadata' in metric:
+                    formatted_metric['metadata'] = metric['metadata']
+                    
+                formatted_batch.append(formatted_metric)
+                
+            if not formatted_batch:
+                logger.warning("No valid metrics to upload after formatting")
+                return True  # Return success since there's nothing to upload
+                
+            # Use the correct endpoint for batch uploads
+            upload_url = f"{self.api_url}/metrics/batch"
             
-            if not batch:
-                return
+            logger.info(f"Uploading {len(formatted_batch)} metrics to {upload_url}")
             
-            logger.info(f"Uploading batch of {len(batch)} metrics")
-            
-            # Prepare metrics for sending
-            prepared_batch = [self._prepare_metric(m) for m in batch]
-            
-            # Send request
+            # Send the batch to the server
             response = requests.post(
-                f"{self.api_url}/metrics/batch",
-                json=prepared_batch,
-                headers={'Content-Type': 'application/json'}
+                upload_url,
+                json=formatted_batch,
+                headers={"Content-Type": "application/json"},
+                timeout=30
             )
             
-            # Handle response
+            # Check the response
             if response.status_code == 200:
-                # Log successful upload with details
-                metrics_by_device = {}
-                for metric in batch:
-                    device = metric['device_name']
-                    if device not in metrics_by_device:
-                        metrics_by_device[device] = []
-                    metrics_by_device[device].append(metric['metric_name'])
-                
-                for device, metric_names in metrics_by_device.items():
-                    logger.info(f"Successfully uploaded {len(metric_names)} metrics for device '{device}': {', '.join(metric_names)}")
-                
-                # Log summary
-                logger.info(f"Upload successful - Total metrics: {len(batch)}, Response time: {response.elapsed.total_seconds():.2f}s")
+                logger.info(f"Successfully uploaded {len(formatted_batch)} metrics")
+                return True
             else:
-                logger.error(f"Failed to upload metrics. Status: {response.status_code}, Response: {response.text}")
-                # Put failed metrics back in queue
-                for metric in batch:
-                    if self.queue.full():
-                        logger.warning("Queue is full, dropping oldest metric")
-                        self.queue.get()
-                    self.queue.put(metric)
-                logger.info("Failed metrics requeued for retry")
-                
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Network error while uploading metrics: {str(e)}", exc_info=True)
-            # Put failed metrics back in queue
-            for metric in batch:
-                if self.queue.full():
-                    logger.warning("Queue is full, dropping oldest metric")
-                    self.queue.get()
-                self.queue.put(metric)
-            logger.info("Failed metrics requeued for retry")
+                logger.error(f"Failed to upload metrics batch: {response.status_code} - {response.text}")
+                return False
+        except requests.exceptions.Timeout:
+            logger.error("Timeout while uploading metrics batch")
+            return False
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Connection error while uploading metrics batch: {str(e)}")
+            return False
         except Exception as e:
-            logger.error(f"Unexpected error while uploading metrics: {str(e)}", exc_info=True)
+            logger.error(f"Error uploading metrics batch: {str(e)}")
+            return False
 
-    def start_uploader(self) -> None:
+    def start(self):
         """Start the uploader thread."""
-        if self.upload_thread is not None and self.upload_thread.is_alive():
+        if self.upload_thread is None or not self.upload_thread.is_alive():
+            logger.info("Starting uploader thread")
+            self.stop_event.clear()
+            self.running = True
+            self.upload_thread = Thread(target=self._upload_worker, daemon=True)
+            self.upload_thread.start()
+        else:
             logger.warning("Uploader thread is already running")
-            return
-        
-        logger.info("Starting uploader thread")
-        self.stop_event.clear()
-        self.upload_thread = Thread(target=self._uploader_loop)
-        self.upload_thread.daemon = True
-        self.upload_thread.start()
 
-    def stop_uploader(self) -> None:
+    def stop(self):
         """Stop the uploader thread."""
         logger.info("Stopping uploader thread")
+        self.running = False
         self.stop_event.set()
-        if self.upload_thread is not None:
-            self.upload_thread.join()
+        
+        # Wait for the thread to finish
+        if self.upload_thread and self.upload_thread.is_alive():
+            self.upload_thread.join(timeout=5)
+            
         logger.info("Uploader thread stopped")
+
+    def _upload_worker(self):
+        """Worker thread to upload metrics in batches."""
+        logger.info("Uploader worker thread started")
+        
+        while not self.stop_event.is_set():
+            try:
+                # Collect metrics from the queue
+                batch = []
+                
+                # Try to get at least one metric (blocking)
+                try:
+                    metric = self.queue.get(block=True, timeout=config.collector.upload_interval)
+                    batch.append(metric)
+                    self.queue.task_done()
+                except Empty:
+                    # No metrics available, continue the loop
+                    continue
+                
+                # Try to get more metrics (non-blocking)
+                try:
+                    while len(batch) < self.batch_size:
+                        metric = self.queue.get(block=False)
+                        batch.append(metric)
+                        self.queue.task_done()
+                except Empty:
+                    # No more metrics available
+                    pass
+                
+                # Upload the batch
+                if batch:
+                    logger.info(f"Uploading batch of {len(batch)} metrics")
+                    if self._upload_metrics_batch(batch):
+                        logger.info(f"Successfully uploaded {len(batch)} metrics")
+                    else:
+                        logger.error(f"Failed to upload {len(batch)} metrics")
+                
+            except Exception as e:
+                logger.error(f"Error in uploader worker: {str(e)}")
+                
+            # Sleep briefly to avoid tight loop
+            time.sleep(0.1)
+        
+        logger.info("Uploader worker thread exiting")
 
     def _uploader_loop(self) -> None:
         """Main loop for the uploader thread."""
@@ -301,8 +359,8 @@ class UploaderQueue:
         while not self.stop_event.is_set():
             try:
                 if self.running:
-                    self.upload_batch()
-                time.sleep(self.collector_config['upload_interval'])
+                    self._upload_worker()
+                time.sleep(config.collector.upload_interval)
             except Exception as e:
                 logger.error(f"Error in uploader loop: {str(e)}", exc_info=True)
                 time.sleep(5)  # Wait before retrying

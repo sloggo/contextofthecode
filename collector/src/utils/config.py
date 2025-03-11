@@ -34,6 +34,8 @@ class WebConfig:
     debug: bool
     secret_key: str
     sse_interval: int  # in seconds
+    use_https: bool = False
+    api_path: str = "/api/v1/aggregator"
 
 class Config:
     def __init__(self):
@@ -71,7 +73,8 @@ class Config:
             port=int(os.getenv('APP_PORT', '8000')),
             debug=os.getenv('DEBUG', 'False').lower() == 'true',
             secret_key=os.getenv('SECRET_KEY', 'your-secret-key-here'),
-            sse_interval=int(os.getenv('SSE_INTERVAL', '5'))
+            sse_interval=int(os.getenv('SSE_INTERVAL', '5')),
+            use_https=os.getenv('USE_HTTPS', 'False').lower() == 'true'
         )
 
     def get_database_url(self) -> str:
@@ -115,12 +118,24 @@ class Config:
             'port': self.web.port,
             'debug': self.web.debug,
             'secret_key': self.web.secret_key,
-            'sse_interval': self.web.sse_interval
+            'sse_interval': self.web.sse_interval,
+            'use_https': self.web.use_https,
+            'api_path': self.web.api_path
         }
 
     def get_stock_interval(self) -> int:
         """Get the stock collection interval in seconds."""
         return self.collector.stock_interval
+
+    def get_api_url(self) -> str:
+        """Get the full API URL based on configuration."""
+        protocol = "https" if self.web.use_https else "http"
+        
+        # For HTTPS to cloud services, don't include the port in the URL if it's the default port
+        if (self.web.use_https and self.web.port == 443) or (not self.web.use_https and self.web.port == 80):
+            return f"{protocol}://{self.web.host}{self.web.api_path}"
+        else:
+            return f"{protocol}://{self.web.host}:{self.web.port}{self.web.api_path}"
 
 # Create a global config instance
 config = Config() 

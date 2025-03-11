@@ -1,12 +1,16 @@
 import os
 import sys
 import time
+import logging
+import socket
 import requests
 import json
 import threading
 from datetime import datetime
 from dotenv import load_dotenv
 import sseclient  # You may need to install this: pip install sseclient-py
+from threading import Thread, Event
+from src.utils.time_utils import get_utc_timestamp
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,62 +22,71 @@ sys.path.insert(0, project_root)
 from src.collector.pc_collector import PCCollector
 from src.collector.stock_collector import StockCollector
 from src.collector.uploader_queue import UploaderQueue
-from src.utils.logging_config import get_logger
+from src.utils.logging_config import get_logger, setup_logger
 from src.utils.config import config
 
-logger = get_logger('collector.main')
+# Set up logging
+setup_logger("collector")
+logger = logging.getLogger(__name__)
 
-def register_stock_device(api_url):
-    """Register the STOCK device in the database to avoid unique constraint errors."""
-    max_retries = 3
-    retry_delay = 2  # seconds
+def register_device(api_url, device_name, device_description=None):
+    """Register a device with the API."""
+    max_retries = 5
+    retry_delay = 5  # seconds
+    timeout = 30     # seconds
+    
+    # Create device payload with timestamp
+    device_data = {
+        "name": device_name,
+        "description": device_description or f"Device: {device_name}",
+        "timestamp": get_utc_timestamp()  # Add timestamp to registration
+    }
+    
+    # Create the registration URL
+    register_url = f"{api_url}/register_device"
+    logger.info(f"Registering device {device_name} at {register_url}")
     
     for attempt in range(1, max_retries + 1):
         try:
-            # Create a device registration endpoint URL
-            device_url = f"{api_url}/register_device"
+            logger.info(f"Attempt {attempt}/{max_retries} to register device {device_name}")
             
-            # Prepare the device data
-            device_data = {
-                "name": "STOCK",
-                "description": "Stock price collector"
-            }
-            
-            logger.info(f"Attempting to register STOCK device (attempt {attempt}/{max_retries})")
-            
-            # Send the request
+            # Send the request with increased timeout
             response = requests.post(
-                device_url,
+                register_url,
                 json=device_data,
                 headers={"Content-Type": "application/json"},
-                timeout=10  # Add timeout to prevent hanging
+                timeout=timeout
             )
             
-            # Check the response
-            if response.status_code == 200 or response.status_code == 201:
-                logger.info("Successfully registered STOCK device")
+            # Check for success (200, 201) or already exists (409)
+            if response.status_code in (200, 201, 409):
+                logger.info(f"Device {device_name} registered successfully or already exists: {response.status_code}")
                 return True
-            elif response.status_code == 409:  # Conflict - device already exists
-                logger.info("STOCK device already registered")
-                return True
-            else:
-                logger.warning(f"Failed to register STOCK device. Status: {response.status_code}, Response: {response.text}")
-                if attempt < max_retries:
-                    logger.info(f"Retrying in {retry_delay} seconds...")
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
-                else:
-                    logger.error("Max retries reached. Could not register STOCK device.")
-                    return False
+                
+            # Handle other status codes
+            logger.warning(f"Failed to register device {device_name}: {response.status_code} - {response.text}")
+            
+        except requests.exceptions.Timeout:
+            logger.error(f"Timeout while registering device {device_name} (attempt {attempt}/{max_retries})")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Connection error while registering device {device_name}: {str(e)}")
         except Exception as e:
-            logger.error(f"Error registering STOCK device: {str(e)}", exc_info=True)
-            if attempt < max_retries:
-                logger.info(f"Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
-            else:
-                logger.error("Max retries reached. Could not register STOCK device.")
-                return False
+            logger.error(f"Error registering device {device_name}: {str(e)}")
+        
+        # Retry if not the last attempt
+        if attempt < max_retries:
+            # Use exponential backoff for retries
+            current_delay = retry_delay * (2 ** (attempt - 1))
+            logger.info(f"Retrying device registration in {current_delay} seconds (attempt {attempt}/{max_retries})...")
+            time.sleep(current_delay)
+    
+    # If we've reached this point, all attempts failed
+    logger.error(f"All {max_retries} attempts to register device {device_name} failed")
+    
+    # For the STOCK device, we can continue without registration
+    if device_name == "STOCK":
+        logger.warning("Continuing without STOCK device registration. Will attempt to use it anyway.")
+        return True
     
     return False
 
@@ -116,93 +129,76 @@ def listen_for_commands(api_url, stock_collector):
 def main():
     """Main function to run the collector."""
     try:
+        logger.info("Starting collector...")
+        
+        # Get API URL from config
+        api_url = config.get_api_url()
+        
+        # Fix URL if needed
+        if api_url.startswith("http://https://"):
+            api_url = api_url.replace("http://https://", "https://")
+        elif api_url.startswith("https://http://"):
+            api_url = api_url.replace("https://http://", "http://")
+            
+        logger.info(f"Using API URL: {api_url}")
+        
+        # Get device name (hostname)
+        device_name = socket.gethostname()
+        logger.info(f"Device name: {device_name}")
+        
+        # Register the device
+        if not register_device(api_url, device_name):
+            logger.error("Failed to register device. Exiting.")
+            return
+            
+        # Register STOCK device for stock metrics
+        stock_device_name = "STOCK"
+        if not register_device(api_url, stock_device_name, "Stock market data collector"):
+            logger.warning("Failed to register STOCK device. Stock metrics may not be properly associated.")
+        
         # Initialize collectors
-        pc_collector = PCCollector()
-        logger.info("PC collector initialized")
+        pc_collector = PCCollector(device_name=device_name)
+        stock_collector = StockCollector(device_name=stock_device_name)
         
-        stock_collector = StockCollector()
-        logger.info("Stock collector initialized")
-
-        # Initialize uploader queue
-        web_config = config.get_web_config()
-        api_url = f"http://127.0.0.1:{web_config['port']}/api/v1/aggregator"
+        # Initialize uploader
         uploader = UploaderQueue(api_url=api_url)
-        logger.info(f"Uploader queue initialized with API URL: {api_url}")
-
-        # Register the STOCK device - this is critical to avoid unique constraint errors
-        logger.info("Registering STOCK device...")
-        registration_success = register_stock_device(api_url)
         
-        if not registration_success:
-            logger.warning("Failed to register STOCK device. Stock metrics may fail to upload.")
-            logger.warning("Continuing with collection, but expect errors for stock metrics.")
-
         # Start the uploader thread
-        uploader.start_uploader()
-        logger.info("Uploader thread started")
+        uploader.start()
         
-        # Start the command listener thread
-        command_thread = threading.Thread(
-            target=listen_for_commands,
-            args=(api_url, stock_collector),
-            daemon=True
-        )
-        command_thread.start()
-        logger.info("Command listener thread started")
-
-        # Main collection loop
-        collector_config = config.get_collector_config()
-        logger.info(f"Starting collection loop with interval: {collector_config['collection_interval']} seconds")
-        logger.info(f"Stock collection interval: {collector_config['stock_interval']} seconds")
-        
-        last_stock_collection = 0
-        
-        while True:
-            try:
-                # Check if we should stop
-                if not uploader.running:
-                    logger.info("Collector is stopped, waiting for start command...")
-                    time.sleep(collector_config['collection_interval'])
-                    continue
-                
-                # Collect PC metrics
-                pc_metrics = pc_collector.collect_metrics()
-                
-                # Add PC metrics to upload queue
-                if pc_metrics:
-                    uploader.add_metrics(pc_metrics)
-                    logger.info(f"Added {len(pc_metrics)} PC metrics to upload queue")
-                
-                # Check if it's time to collect stock metrics
-                current_time = time.time()
-                if current_time - last_stock_collection >= collector_config['stock_interval']:
-                    # Collect stock metrics
-                    stock_metrics = stock_collector.collect_metrics()
+        # Collection loop
+        try:
+            while uploader.running:
+                try:
+                    # Collect PC metrics
+                    pc_metrics = pc_collector.collect_metrics()
+                    if pc_metrics:
+                        # Add device name to metrics if PCCollector doesn't set it
+                        for metric in pc_metrics:
+                            if 'device_name' not in metric:
+                                metric['device_name'] = device_name
+                        uploader.add_metrics(pc_metrics)
                     
-                    # Add stock metrics to upload queue
+                    # Collect stock metrics (less frequently)
+                    stock_metrics = stock_collector.collect_metrics()
                     if stock_metrics:
                         uploader.add_metrics(stock_metrics)
-                        logger.info(f"Added {len(stock_metrics)} stock metrics to upload queue")
-                    
-                    last_stock_collection = current_time
+                        
+                except Exception as e:
+                    logger.error(f"Error in collection loop: {str(e)}")
                 
-                # Wait for next collection interval
-                time.sleep(collector_config['collection_interval'])
+                # Sleep until next collection
+                time.sleep(config.collector.collection_interval)
                 
-            except KeyboardInterrupt:
-                logger.info("Received keyboard interrupt, shutting down...")
-                break
-            except Exception as e:
-                logger.error(f"Error in main loop: {str(e)}", exc_info=True)
-                time.sleep(5)  # Wait before retrying
-                
+        except KeyboardInterrupt:
+            logger.info("Keyboard interrupt received. Stopping collector...")
+        finally:
+            # Stop the uploader
+            uploader.stop()
+            logger.info("Collector stopped.")
+            
     except Exception as e:
-        logger.error(f"Fatal error: {str(e)}", exc_info=True)
-    finally:
-        # Cleanup
-        if 'uploader' in locals():
-            uploader.stop_uploader()
-        logger.info("Collector stopped")
-
-if __name__ == '__main__':
+        logger.error(f"Fatal error: {str(e)}")
+        
+if __name__ == "__main__":
     main() 

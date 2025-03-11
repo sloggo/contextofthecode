@@ -1,7 +1,7 @@
 import time
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from threading import Thread, Event
 import os
 from typing import List, Dict, Optional
@@ -102,31 +102,50 @@ class StockCollector:
             return None
     
     def collect_metrics(self) -> List[Dict]:
-        """Collect metrics for all monitored stocks"""
-        if not self.stocks:
-            logger.info("No stocks configured for monitoring")
-            return []
-        
-        logger.info(f"Starting stock price collection for {len(self.stocks)} stocks")
-        timestamp = datetime.utcnow().isoformat()
-        
+        """Collect stock metrics."""
         metrics = []
-        for symbol in self.stocks:
-            price = self.fetch_stock_price(symbol)
-            if price is not None:
-                # Create metric in the format expected by the uploader queue
-                # Use a consistent device name for all stocks
-                metric = {
-                    'device_name': self.device_name,
-                    'metric_name': f'stock_price_{symbol}',
-                    'value': price,
-                    'timestamp': timestamp
-                }
-                metrics.append(metric)
-                logger.info(f"Added stock price metric for {symbol}: ${price:.2f}")
+        # Use UTC timezone and ISO format with timezone info
+        timestamp = datetime.now(timezone.utc).isoformat()
         
-        logger.info(f"Completed stock metric collection. Total metrics collected: {len(metrics)}")
-        return metrics
+        try:
+            for symbol in self.stocks:
+                try:
+                    # Get stock data
+                    stock_data = self.fetch_stock_price(symbol)
+                    
+                    if not stock_data:
+                        logger.warning(f"No data available for {symbol}")
+                        continue
+                    
+                    # Extract the price
+                    price = float(stock_data)
+                    
+                    if price > 0:  # Ensure we have a valid value
+                        metrics.append({
+                            "device_name": self.device_name,
+                            "metric_name": f"stock_price_{symbol}",
+                            "metric_value": price,
+                            "timestamp": timestamp,
+                            "metadata": {
+                                "symbol": symbol,
+                                "open": stock_data.get('Global Quote', {}).get('02. open', ''),
+                                "high": stock_data.get('Global Quote', {}).get('03. high', ''),
+                                "low": stock_data.get('Global Quote', {}).get('04. low', ''),
+                                "volume": stock_data.get('Global Quote', {}).get('06. volume', '')
+                            }
+                        })
+                    else:
+                        logger.warning(f"Invalid price (0 or negative) for {symbol}")
+                    
+                except Exception as e:
+                    logger.error(f"Error collecting metrics for {symbol}: {str(e)}")
+            
+            logger.info(f"Collected {len(metrics)} stock metrics")
+            return metrics
+        
+        except Exception as e:
+            logger.error(f"Error collecting stock metrics: {str(e)}")
+            return []
     
     def _collection_loop(self):
         """Main collection loop"""
