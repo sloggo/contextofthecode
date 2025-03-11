@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        .gauge-container {
+            width: 250px;
+            height: 200px;
+            margin: 0 auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .gauge-container svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .gauge-value {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .gauges-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            min-height: 300px;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .gauge-card {
+            flex: 0 0 350px;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 30px 0;
+            width: 100%;
+            border: 1px solid #eee;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0d6efd;
+            margin-top: 10px;
+        }
+        .metric-label {
+            color: #6c757d;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid py-4">
+        <!-- Filters Section -->
+        <div class="filter-section">
+            <form id="filterForm" action="/dashboard" method="get">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Device</label>
+                        <select class="form-select" name="device" id="deviceSelect">
+                            <option value="">All Devices</option>
+                            {% for device in initial_devices %}
+                            <option value="{{ device }}" {% if device == selected_device %}selected{% endif %}>{{ device }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Metric</label>
+                        <select class="form-select" name="metric" id="metricSelect">
+                            <option value="">All Metrics</option>
+                            {% for metric in initial_metrics %}
+                            <option value="{{ metric }}" {% if metric == selected_metric %}selected{% endif %}>{{ metric }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="datetime-local" class="form-control" name="start_date" id="startDate">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">End Date</label>
+                        <input type="datetime-local" class="form-control" name="end_date" id="endDate">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-filter"></i> Apply Filters
+                            </button>
+                            <a href="/dashboard" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Reset Filters
+                            </a>
+                            <button type="button" class="btn btn-success" onclick="controlCollectors('start')">
+                                <i class="bi bi-play-fill"></i> Start Collectors
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="controlCollectors('stop')">
+                                <i class="bi bi-stop-fill"></i> Stop Collectors
+                            </button>
+                            <span id="collectorStatus" class="ms-3 align-self-center"></span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Stock information section (read-only) -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex align-items-center flex-wrap">
+                        <h6 class="mb-0 me-3">Monitored Stocks:</h6>
+                        <div id="stocksList" class="d-flex flex-wrap gap-2 me-3">
+                            <!-- Stock badges will be added here -->
+                            <span class="text-muted">AAPL, MSFT, GOOGL (managed by collector)</span>
+                        </div>
+                        
+                        <!-- Add stock form -->
+                        <div class="d-flex align-items-center ms-auto">
+                            <div class="input-group" style="max-width: 300px;">
+                                <input type="text" id="stockSymbol" class="form-control" placeholder="Stock Symbol (e.g., AAPL)" maxlength="10">
+                                <button class="btn btn-primary" type="button" onclick="addStockToCollector()">
+                                    <i class="bi bi-plus-circle"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gauges Section -->
+        <div class="container-fluid">
+            {% set metric_count = namespace(count=0) %}
+            {% for device, device_metrics in metrics.items() %}
+                {% for metric_name, metric_data in device_metrics.items() %}
+                    {% if device != "STOCK" %}
+                        {% set metric_count.count = metric_count.count + 1 %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            
+            {% if selected_metric == '' %}
+                <!-- Group by device when all metrics are selected -->
+                {% for device, device_metrics in metrics.items() %}
+                    {% if device_metrics|length > 0 %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0">{{ device }}</h4>
+                            </div>
+                            <div class="card-body">
+                                {% if device != "STOCK" %}
+                                <div class="gauges-row">
+                                    {% for metric_name, metric_data in device_metrics.items() %}
+                                        <div class="gauge-card">
+                                            <div class="metric-card">
+                                                <h5 class="text-center mb-3">{{ metric_name }}</h5>
+                                                <div class="gauge-container">
+                                                    <svg id="gauge-{{ device|replace(' ', '_')|replace('.', '_') }}-{{ metric_name|replace(' ', '_')|replace('.', '_') }}"></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                
+                                <div class="row justify-content-center">
+                                    {% for metric_name, metric_data in device_metrics.items() %}
+                                        <div class="col-md-6 mb-4">
+                                            <div class="metric-card">
+                                                <h5 class="text-center mb-3">{{ metric_name }}</h5>
+                                                <div class="chart-container">
+                                                    <canvas id="chart-{{ device|replace(' ', '_')|replace('.', '_') }}-{{ metric_name|replace(' ', '_')|replace('.', '_') }}"></canvas>
+                                                </div>
+                                                <div class="row text-center">
+                                                    <div class="col">
+                                                        <div class="metric-value">{{ "%.2f"|format(metric_data.avg_value) }}</div>
+                                                        <div class="metric-label">Average</div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <div class="metric-value">{{ "%.2f"|format(metric_data.min_value) }}</div>
+                                                        <div class="metric-label">Min</div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <div class="metric-value">{{ "%.2f"|format(metric_data.max_value) }}</div>
+                                                        <div class="metric-label">Max</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <!-- Original layout when a specific metric is selected -->
+                <div class="gauges-row">
+                    {% for device, device_metrics in metrics.items() %}
+                        {% for metric_name, metric_data in device_metrics.items() %}
+                        {% if device != "STOCK" %}
+                        <div class="gauge-card" {% if metric_count.count == 1 %}style="flex: 0 0 100%; max-width: 400px;"{% endif %}>
+                            <div class="metric-card">
+                                <h5 class="text-center mb-3">{{ device }} - {{ metric_name }}</h5>
+                                <div class="gauge-container">
+                                    <svg id="gauge-{{ device|replace(' ', '_')|replace('.', '_') }}-{{ metric_name|replace(' ', '_')|replace('.', '_') }}"></svg>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+
+                <!-- Graphs Section for specific metric -->
+                <div class="row justify-content-center">
+                    {% for device, device_metrics in metrics.items() %}
+                        {% for metric_name, metric_data in device_metrics.items() %}
+                        <div class="col-md-6 mb-4">
+                            <div class="metric-card">
+                                <h5 class="text-center mb-3">{{ device }} - {{ metric_name }}</h5>
+                                <div class="chart-container">
+                                    <canvas id="chart-{{ device|replace(' ', '_')|replace('.', '_') }}-{{ metric_name|replace(' ', '_')|replace('.', '_') }}"></canvas>
+                                </div>
+                                <div class="row text-center">
+                                    <div class="col">
+                                        <div class="metric-value">{{ "%.2f"|format(metric_data.avg_value) }}</div>
+                                        <div class="metric-label">Average</div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="metric-value">{{ "%.2f"|format(metric_data.min_value) }}</div>
+                                        <div class="metric-label">Min</div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="metric-value">{{ "%.2f"|format(metric_data.max_value) }}</div>
+                                        <div class="metric-label">Max</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Metrics Table Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="metric-card">
+                    <h5 class="text-center mb-3">Metrics Data Table</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Device</th>
+                                    <th>Metric</th>
+                                    <th>Value</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if paginated_metrics.data|length > 0 %}
+                                    {% for metric in paginated_metrics.data %}
+                                    <tr>
+                                        <td>{{ metric.device_name }}</td>
+                                        <td>{{ metric.metric_name }}</td>
+                                        <td>{{ "%.2f"|format(metric.value) }}</td>
+                                        <td>{{ metric.timestamp }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No metrics data found for the selected filters.</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <form id="per-page-form" method="get" class="d-inline">
+                                {% if selected_device %}<input type="hidden" name="device" value="{{ selected_device }}">{% endif %}
+                                {% if selected_metric %}<input type="hidden" name="metric" value="{{ selected_metric }}">{% endif %}
+                                {% if request.args.get('start_date') %}<input type="hidden" name="start_date" value="{{ request.args.get('start_date') }}">{% endif %}
+                                {% if request.args.get('end_date') %}<input type="hidden" name="end_date" value="{{ request.args.get('end_date') }}">{% endif %}
+                                <select name="per_page" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10 per page</option>
+                                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25 per page</option>
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
+                                </select>
+                            </form>
+                        </div>
+                        {% if paginated_metrics.total_pages > 1 %}
+                        <nav aria-label="Metrics pagination">
+                            <ul class="pagination pagination-sm">
+                                <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ url_for('views.dashboard', page=current_page-1, per_page=per_page, device=selected_device, metric=selected_metric, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                
+                                {% set start_page = [1, current_page - 2]|max %}
+                                {% set end_page = [paginated_metrics.total_pages, start_page + 4]|min %}
+                                {% set start_page = [1, end_page - 4]|max %}
+                                
+                                {% for p in range(start_page, end_page + 1) %}
+                                <li class="page-item {% if p == current_page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('views.dashboard', page=p, per_page=per_page, device=selected_device, metric=selected_metric, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}">{{ p }}</a>
+                                </li>
+                                {% endfor %}
+                                
+                                <li class="page-item {% if current_page == paginated_metrics.total_pages %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ url_for('views.dashboard', page=current_page+1, per_page=per_page, device=selected_device, metric=selected_metric, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize metrics data
+        var metricsData = JSON.parse('{{ metrics|tojson|safe }}');
+        console.log("Metrics data initialized:", Object.keys(metricsData));
+        
+        // Create SVG gauge
+        function createSvgGauge(containerId, value, min, max, metricName) {
+            try {
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    console.error(`Container not found: ${containerId}`);
+                    return null;
+                }
+                
+                console.log(`Creating SVG gauge for ${containerId} with value: ${value}, min: ${min}, max: ${max}`);
+                
+                // Ensure values are numbers
+                value = parseFloat(value) || 0;
+                min = parseFloat(min) || 0;
+                max = parseFloat(max) || 100;
+                
+                // Clamp value between min and max
+                value = Math.max(min, Math.min(max, value));
+                
+                // Calculate percentage
+                const percentage = (value - min) / (max - min);
+                
+                // Determine color based on metric type and value
+                let color;
+                if (metricName.includes('cpu')) {
+                    if (percentage < 0.6) color = "#30B32D"; // Green up to 60%
+                    else if (percentage < 0.8) color = "#FFDD00"; // Yellow 60-80%
+                    else color = "#F03E3E"; // Red 80-100%
+                } else if (metricName.includes('memory')) {
+                    if (percentage < 0.7) color = "#30B32D"; // Green up to 70%
+                    else if (percentage < 0.85) color = "#FFDD00"; // Yellow 70-85%
+                    else color = "#F03E3E"; // Red 85-100%
+                } else {
+                    if (percentage < 0.33) color = "#30B32D"; // Green for first third
+                    else if (percentage < 0.66) color = "#FFDD00"; // Yellow for middle third
+                    else color = "#F03E3E"; // Red for last third
+                }
+                
+                // Create SVG element
+                const svgNS = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNS, "svg");
+                svg.setAttribute("viewBox", "0 0 200 150");
+                
+                // Create outer container for gauge
+                const gaugeGroup = document.createElementNS(svgNS, "g");
+                gaugeGroup.setAttribute("transform", "translate(100, 90)");
+                svg.appendChild(gaugeGroup);
+                
+                // Create background arc (gray)
+                const bgArc = document.createElementNS(svgNS, "path");
+                const bgArcPath = describeArcSweep(0, 0, 70, 180, 360);
+                bgArc.setAttribute("d", bgArcPath);
+                bgArc.setAttribute("fill", "none");
+                bgArc.setAttribute("stroke", "#E0E0E0");
+                bgArc.setAttribute("stroke-width", "20");
+                bgArc.setAttribute("stroke-linecap", "round");
+                gaugeGroup.appendChild(bgArc);
+                
+                // Create value arc (colored)
+                const valueArc = document.createElementNS(svgNS, "path");
+                const valueArcPath = describeArcSweep(0, 0, 70, 180, 180 + (180 * percentage));
+                valueArc.setAttribute("d", valueArcPath);
+                valueArc.setAttribute("fill", "none");
+                valueArc.setAttribute("stroke", color);
+                valueArc.setAttribute("stroke-width", "20");
+                valueArc.setAttribute("stroke-linecap", "round");
+                gaugeGroup.appendChild(valueArc);
+                
+                // Create min label
+                const minLabel = document.createElementNS(svgNS, "text");
+                minLabel.setAttribute("x", "-70");
+                minLabel.setAttribute("y", "40");
+                minLabel.setAttribute("font-size", "14");
+                minLabel.setAttribute("text-anchor", "start");
+                minLabel.textContent = min.toString();
+                gaugeGroup.appendChild(minLabel);
+                
+                // Create max label
+                const maxLabel = document.createElementNS(svgNS, "text");
+                maxLabel.setAttribute("x", "70");
+                maxLabel.setAttribute("y", "40");
+                maxLabel.setAttribute("font-size", "14");
+                maxLabel.setAttribute("text-anchor", "end");
+                maxLabel.textContent = max.toString();
+                gaugeGroup.appendChild(maxLabel);
+                
+                // Create value text
+                const valueText = document.createElementNS(svgNS, "text");
+                valueText.setAttribute("x", "0");
+                valueText.setAttribute("y", "-10");
+                valueText.setAttribute("font-size", "30");
+                valueText.setAttribute("font-weight", "bold");
+                valueText.setAttribute("text-anchor", "middle");
+                valueText.textContent = value.toFixed(1);
+                gaugeGroup.appendChild(valueText);
+                
+                // Create unit text
+                const unitText = document.createElementNS(svgNS, "text");
+                unitText.setAttribute("x", "0");
+                unitText.setAttribute("y", "15");
+                unitText.setAttribute("font-size", "14");
+                unitText.setAttribute("text-anchor", "middle");
+                unitText.textContent = metricName.includes('cpu') ? "CPU %" : "Memory %";
+                gaugeGroup.appendChild(unitText);
+                
+                // Clear container and append SVG
+                container.innerHTML = '';
+                container.appendChild(svg);
+                
+                console.log(`SVG gauge created for ${containerId}`);
+                
+                // Return an object with an update method
+                return {
+                    update: function(newValue) {
+                        // Ensure value is a number
+                        newValue = parseFloat(newValue) || 0;
+                        
+                        // Clamp value between min and max
+                        newValue = Math.max(min, Math.min(max, newValue));
+                        
+                        // Calculate percentage
+                        const newPercentage = (newValue - min) / (max - min);
+                        
+                        // Determine color based on metric type and value
+                        let newColor;
+                        if (metricName.includes('cpu')) {
+                            if (newPercentage < 0.6) newColor = "#30B32D"; // Green up to 60%
+                            else if (newPercentage < 0.8) newColor = "#FFDD00"; // Yellow 60-80%
+                            else newColor = "#F03E3E"; // Red 80-100%
+                        } else if (metricName.includes('memory')) {
+                            if (newPercentage < 0.7) newColor = "#30B32D"; // Green up to 70%
+                            else if (newPercentage < 0.85) newColor = "#FFDD00"; // Yellow 70-85%
+                            else newColor = "#F03E3E"; // Red 85-100%
+                        } else {
+                            if (newPercentage < 0.33) newColor = "#30B32D"; // Green for first third
+                            else if (newPercentage < 0.66) newColor = "#FFDD00"; // Yellow for middle third
+                            else newColor = "#F03E3E"; // Red for last third
+                        }
+                        
+                        // Update value arc
+                        const newValueArcPath = describeArcSweep(0, 0, 70, 180, 180 + (180 * newPercentage));
+                        valueArc.setAttribute("d", newValueArcPath);
+                        valueArc.setAttribute("stroke", newColor);
+                        
+                        // Update value text
+                        valueText.textContent = newValue.toFixed(1);
+                    }
+                };
+            } catch (error) {
+                console.error(`Error creating SVG gauge ${containerId}:`, error);
+                return null;
+            }
+        }
+        
+        // Helper function to create arc path using sweep flag
+        function describeArcSweep(x, y, radius, startAngle, endAngle) {
+            const start = polarToCartesian(x, y, radius, startAngle);
+            const end = polarToCartesian(x, y, radius, endAngle);
+            
+            // Determine if the arc should be greater than 180 degrees
+            const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1";
+            
+            // Determine sweep direction
+            const sweepFlag = startAngle > endAngle ? "0" : "1";
+            
+            const d = [
+                "M", start.x, start.y,
+                "A", radius, radius, 0, largeArcFlag, sweepFlag, end.x, end.y
+            ].join(" ");
+            
+            return d;
+        }
+        
+        // Helper function to convert polar coordinates to cartesian
+        function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+            const angleInRadians = (angleInDegrees) * Math.PI / 180.0;
+            return {
+                x: centerX + (radius * Math.cos(angleInRadians)),
+                y: centerY + (radius * Math.sin(angleInRadians))
+            };
+        }
+        
+        // Store gauge instances
+        const gaugeInstances = {};
+        
+        // Set default date range and initialize filters
+        function initializeDateFilters() {
+            const now = new Date();
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            
+            // Format dates for datetime-local input
+            const formatDate = (date) => {
+                return date.toISOString().slice(0, 16);
+            };
+            
+            // Set default values if not already set in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            startDate.value = urlParams.get('start_date') || formatDate(yesterday);
+            endDate.value = urlParams.get('end_date') || formatDate(now);
+            
+            console.log("Date filters initialized:", { 
+                start: startDate.value, 
+                end: endDate.value 
+            });
+        }
+
+        // Initialize everything when the page loads
+        window.onload = function() {
+            console.log('Window loaded');
+            
+            // Initialize date filters
+            initializeDateFilters();
+            
+            // Check if libraries are loaded
+            console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+            
+            // Create gauges and charts
+            try {
+                for (const device in metricsData) {
+                    for (const metric in metricsData[device]) {
+                        const data = metricsData[device][metric];
+                        const safeDevice = device.replace(/[ .]/g, '_');
+                        const safeMetric = metric.replace(/[ .]/g, '_');
+                        
+                        // Create gauge if element exists and it's not a STOCK device
+                        if (device !== "STOCK") {
+                            const gaugeId = `gauge-${safeDevice}-${safeMetric}`;
+                            const gaugeElement = document.getElementById(gaugeId);
+                            if (gaugeElement) {
+                                console.log(`Creating gauge for ${gaugeId}`);
+                                gaugeInstances[gaugeId] = createSvgGauge(
+                                    gaugeId,
+                                    data.current_value,
+                                    0, // Always start from 0
+                                    data.max_value > 100 ? data.max_value : 100, // Use at least 100 as max
+                                    metric
+                                );
+                            }
+                        }
+                        
+                        // Create chart if element exists
+                        const chartId = `chart-${safeDevice}-${safeMetric}`;
+                        const chartElement = document.getElementById(chartId);
+                        if (chartElement && data.timestamps && data.values) {
+                            console.log(`Creating chart for ${chartId}`);
+                            new Chart(chartElement, {
+                                type: 'line',
+                                data: {
+                                    labels: data.timestamps,
+                                    datasets: [{
+                                        label: `${metric} Values`,
+                                        data: data.values,
+                                        borderColor: '#0d6efd',
+                                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                                        fill: true
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false
+                                }
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating charts and gauges:', error);
+            }
+        };
+
+        // Stock management functions
+        function loadStocks() {
+            // Intentionally empty - stocks are managed by the collector
+            console.log("Stocks are managed by the collector");
+        }
+        
+        function addStockToCollector() {
+            const symbolInput = document.getElementById('stockSymbol');
+            const symbol = symbolInput.value.trim().toUpperCase();
+            
+            if (!symbol) {
+                alert("Please enter a valid stock symbol");
+                return;
+            }
+            
+            // Basic validation
+            if (!/^[A-Z]{1,10}$/.test(symbol)) {
+                alert("Invalid stock symbol. Please use only letters (1-10 characters).");
+                return;
+            }
+            
+            // Send request to add the stock
+            fetch('/api/v1/aggregator/add_stock', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ symbol: symbol })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Clear the input
+                    symbolInput.value = '';
+                    
+                    // Show success message
+                    alert(`Stock ${symbol} added to monitoring queue. It may take a few minutes for data to appear.`);
+                    
+                    // Update the stocks list
+                    const stocksList = document.getElementById('stocksList');
+                    stocksList.innerHTML = stocksList.innerHTML.replace(
+                        'AAPL, MSFT, GOOGL',
+                        `AAPL, MSFT, GOOGL, ${symbol}`
+                    );
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding stock. Please try again.');
+            });
+        }
+        
+        function removeStock(symbol) {
+            alert("Stocks are managed by the collector and cannot be removed through the UI");
+        }
+        
+        // Add this to your JavaScript section
+        function controlCollectors(action) {
+            fetch(`/api/v1/aggregator/control/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const statusElement = document.getElementById('collectorStatus');
+                    const statusText = action === 'start' ? 'Collectors Running' : 'Collectors Stopped';
+                    const statusClass = action === 'start' ? 'text-success' : 'text-danger';
+                    statusElement.textContent = statusText;
+                    statusElement.className = `ms-3 align-self-center ${statusClass}`;
+                } else {
+                    alert('Error controlling collectors');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html> 

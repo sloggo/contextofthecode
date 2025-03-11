@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart.js Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        .chart-container {
+            width: 800px;
+            height: 400px;
+            margin: 50px auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <canvas id="testChart"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+            
+            const ctx = document.getElementById('testChart').getContext('2d');
+            console.log('Canvas context:', ctx);
+            
+            const data = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Test Data',
+                    data: [65, 59, 80, 81, 56, 55, 40],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            };
+            
+            try {
+                console.log('Creating test chart');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                console.log('Test chart created successfully');
+            } catch (error) {
+                console.error('Error creating test chart:', error);
+            }
+        });
+    </script>
+</body>
+</html> 
